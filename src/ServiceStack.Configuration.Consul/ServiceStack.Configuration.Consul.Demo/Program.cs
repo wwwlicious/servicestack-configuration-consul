@@ -52,7 +52,7 @@ namespace ServiceStack.Configuration.Consul.Demo
             if (string.Equals(key.Key, "all", StringComparison.InvariantCultureIgnoreCase))
                 return AppSettings.GetAllKeys();
 
-            return "";
+            return AppSettings.GetString(key.Key);
         }
     }
 

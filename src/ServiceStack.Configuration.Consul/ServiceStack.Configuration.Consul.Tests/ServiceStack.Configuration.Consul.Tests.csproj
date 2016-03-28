@@ -30,6 +30,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FluentAssertions, Version=4.2.2.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentAssertions.4.2.2\lib\net45\FluentAssertions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FluentAssertions.Core, Version=4.2.2.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentAssertions.4.2.2\lib\net45\FluentAssertions.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="ServiceStack, Version=4.0.54.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ServiceStack.4.0.54\lib\net40\ServiceStack.dll</HintPath>
       <Private>True</Private>
@@ -76,10 +84,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="KeyValueTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceStack.Configuration.Consul\ServiceStack.Configuration.Consul.csproj">
+      <Project>{D5A42FFF-2A9A-446A-8D3C-8D3EB5FC7546}</Project>
+      <Name>ServiceStack.Configuration.Consul</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

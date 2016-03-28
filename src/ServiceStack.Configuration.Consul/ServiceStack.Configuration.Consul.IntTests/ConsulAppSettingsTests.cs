@@ -33,7 +33,6 @@ namespace ServiceStack.Configuration.Consul.IntTests
             const string expected = "{ \"Age\": 34, \"Name\": \"Donald\" }";
             const string key = "person1";
 
-            //var shazam = appSettings.GetAll();
             var actual = appSettings.GetString(key);
 
             actual.Should().Be(expected);
@@ -54,10 +53,7 @@ namespace ServiceStack.Configuration.Consul.IntTests
         {
             const string key = "person1";
 
-            var actual = appSettings.Get<Human>(key);
-
-            actual.Age.Should().Be(34);
-            actual.Name.Should().Be("Donald");
+            var actual = appSettings.Get<Dog>(key);
         }
 
         [Fact]
@@ -93,6 +89,12 @@ namespace ServiceStack.Configuration.Consul.IntTests
             var human = appSettings.Get<Human>(key);
             human.Should().Be(x);
         }
+    }
+
+    public class Dog
+    {
+        public int DogYears { get; set; }
+        public int Name { get; set; }
     }
 
     public class Human

@@ -1,23 +1,25 @@
-﻿namespace ServiceStack.Configuration.Consul.Models
+﻿namespace ServiceStack.Configuration.Consul.DTO
 {
     using System.Runtime.Serialization;
     using System.Text;
     using Text;
 
     [Route("/v1/kv/{Key}", "GET,PUT")]
+    [DataContract]
     public class KeyValue
     {
+        [DataMember]
         public string Key { get; set; }
 
-        public byte[] Value { get; set; }
+        [DataMember(Name = "Value")]
+        public byte[] RawValue { get; set; }
 
         [IgnoreDataMember]
-        // NOTE Do I need this?
-        public string ValueString => Encoding.UTF8.GetString(Value);
+        public string Value => Encoding.UTF8.GetString(RawValue);
 
-        public T GetValueAs<T>()
+        public T GetValue<T>()
         {
-            return JsonSerializer.DeserializeFromString<T>(ValueString);
+            return JsonSerializer.DeserializeFromString<T>(Value);
         }
 
         public static KeyValue Create(string key)
@@ -30,9 +32,8 @@
             return new KeyValue
             {
                 Key = key,
-                Value = Encoding.UTF8.GetBytes(JsonSerializer.SerializeToString(value))
+                RawValue = Encoding.UTF8.GetBytes(JsonSerializer.SerializeToString(value))
             };
         }
     }
 }
-

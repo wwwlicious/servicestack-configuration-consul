@@ -5,17 +5,14 @@
     using System.Linq;
     using System.Net;
     using Configuration;
+    using DTO;
     using Logging;
-    using Models;
 
     public class ConsulAppSettings : IAppSettings
     {
         private readonly string keyValueEndpoint;
-        private readonly ILog log = LogManager.GetLogger(typeof (ConsulAppSettings));
         private readonly string consulUri;
-
-        internal Action<HttpWebRequest> PreFilter { get; set; } = null;
-        internal Action<HttpWebResponse> PostFilter { get; set; } = null;
+        private readonly ILog log = LogManager.GetLogger(typeof(ConsulAppSettings));
 
         // TODO Handle consul not being available - circuit breaker?
         public ConsulAppSettings(string consulUri)
@@ -52,7 +49,7 @@
         public List<string> GetAllKeys()
         {
             // GET ?keys []
-            return $"{keyValueEndpoint}?keys".GetJsonFromUrl(PreFilter, PostFilter).FromJson<List<string>>();
+            return $"{keyValueEndpoint}?keys".GetJsonFromUrl().FromJson<List<string>>();
         }
 
         public bool Exists(string key)
@@ -66,7 +63,7 @@
         {
             // PUT. Throw if != true
             var keyVal = KeyValue.Create(key, value);
-            var result = consulUri.CombineWith(keyVal.ToPutUrl()).PutJsonToUrl(keyVal.ValueString);
+            var result = consulUri.CombineWith(keyVal.ToPutUrl()).PutJsonToUrl(keyVal.Value);
 
             bool success;
             if (!bool.TryParse(result, out success) || !success)
@@ -111,7 +108,7 @@
             {
                 // IF serialising to string then it just gets the base-64 string. Need to cast???;
                 var keyValues = GetKeyValue(name);
-                var value = keyValues.GetValueAs<T>();
+                var value = keyValues.GetValue<T>();
 
                 if (log.IsDebugEnabled)
                 {
@@ -123,6 +120,11 @@
             catch (WebException ex) when (ex.ToStatusCode() == 404)
             {
                 log.Error($"Unable to find config value with key {name}", ex);
+                return defaultValue;
+            }
+            catch (NotSupportedException ex)
+            {
+                log.Error($"Unable to deserialise config value with key {name}", ex);
                 return defaultValue;
             }
             catch (Exception ex)

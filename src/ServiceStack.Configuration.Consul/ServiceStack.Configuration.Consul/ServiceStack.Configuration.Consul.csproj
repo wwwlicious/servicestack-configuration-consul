@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConsulAppSettings.cs" />
-    <Compile Include="Models\KeyValue.cs" />
+    <Compile Include="DTO\KeyValue.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

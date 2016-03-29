@@ -1,13 +1,14 @@
 ﻿
 namespace ServiceStack.Configuration.Consul.IntTests
 {
+    using System.Collections.Generic;
     using FluentAssertions;
     using Xunit;
 
     [Trait("Category", "Consul")]
     public class ConsulAppSettingsTests
     {
-        /*private readonly IAppSettings appSettings;
+        private readonly IAppSettings appSettings;
         public ConsulAppSettingsTests()
         {
             appSettings = new ConsulAppSettings("http://127.0.0.1:8500/");
@@ -88,7 +89,24 @@ namespace ServiceStack.Configuration.Consul.IntTests
 
             var human = appSettings.Get<Human>(key);
             human.Should().Be(x);
-        }*/
+        }
+
+        [Fact]
+        public void SetDict()
+        {
+            IDictionary<string, string> dict = new Dictionary<string, string>
+            {
+                { "One", "ValOne" },
+                { "Two", "ValTwo" }
+            };
+
+            const string key = "dictionary";
+
+            appSettings.Set(key, dict);
+
+            var human = appSettings.GetDictionary(key);
+            human.ShouldBeEquivalentTo(dict);
+        }
     }
 
     public class Dog

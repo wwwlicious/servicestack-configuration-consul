@@ -76,7 +76,6 @@
             {
                 // TODO throw a wee error
             }
-
         }
 
         public string GetString(string name)
@@ -126,16 +125,22 @@
             catch (WebException ex) when (ex.ToStatusCode() == 404)
             {
                 log.Error($"Unable to find config value with key {name}", ex);
+
+                // throw KeyNotFoundException here
                 return defaultValue;
             }
             catch (NotSupportedException ex)
             {
                 log.Error($"Unable to deserialise config value with key {name}", ex);
+
+                // throw something else or KNF???
                 return defaultValue;
             }
             catch (Exception ex)
             {
                 log.Error($"Error getting string value for config key {name}", ex);
+
+                // throw something else or KNF???
                 return defaultValue;
             }
         }

@@ -59,11 +59,11 @@
         }
 
         [Fact]
-        public void GetAllKeys_ReturnsNullIfErrorThrown()
+        public void GetAllKeys_ReThrows_AnyErrors()
         {
             using (GetErrorHttpResultsFilter())
             {
-                appSettings.GetAllKeys().Should().BeNull();
+                Assert.Throws<WebException>(() => appSettings.GetAllKeys());
             }
         }
 
@@ -122,18 +122,18 @@
         }
 
         [Fact]
-        public void GetString_ReturnsNull_IfNotFound()
+        public void GetString_ThrowsKeyNotFoundException_IfNotFound()
         {
             using (GetErrorHttpResultsFilter())
             {
-                appSettings.GetString(SampleKey).Should().BeNull();
+                Assert.Throws<KeyNotFoundException>(() => appSettings.GetString(SampleKey));
             }
         }
 
         [Fact]
         public void Get_CallsGetEndpoint()
         {
-            VerifyGetEndpoint(() => appSettings.Get<Human>(SampleKey));
+            VerifyGetEndpoint(() => appSettings.Get<string>(SampleKey));
         }
 
         [Fact]
@@ -148,20 +148,11 @@
         }
 
         [Fact]
-        public void Get_ReturnsNull_IfNotFound_ReferenceType()
+        public void Get_ThrowsKeyNotFoundException_IfNotFound_ReferenceType()
         {
             using (GetErrorHttpResultsFilter())
             {
-                appSettings.Get<Human>(SampleKey).Should().BeNull();
-            }
-        }
-
-        [Fact]
-        public void Get_ReturnsDefault_IfNotFound_ValueType()
-        {
-            using (GetErrorHttpResultsFilter())
-            {
-                appSettings.Get<int>(SampleKey).Should().Be(0);
+                Assert.Throws<KeyNotFoundException>(() => appSettings.Get<Human>(SampleKey));
             }
         }
 
@@ -197,21 +188,18 @@
         [Fact]
         public void GetDictionary_CallsGetEndpoint()
         {
-            VerifyGetEndpoint(() => appSettings.GetDictionary(SampleKey));
+            string dictResult;
+            Dictionary<string, string> dict = GenerateDictionaryResponse(out dictResult);
+
+            VerifyGetEndpoint(() => appSettings.GetDictionary(SampleKey), result: dictResult);
         }
 
         [Fact]
         public void GetDictionary_Returns_IfFound()
         {
-            var dict = new Dictionary<string, string>
-            {
-                { "One", "ValOne" },
-                { "Two", "ValTwo" }
-            };
+            string dictResult;
+            Dictionary<string, string> dict = GenerateDictionaryResponse(out dictResult);
 
-            var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(TypeSerializer.SerializeToString(dict)));
-            string dictResult = $"[{{\"Key\":\"Key1212\",\"Value\":\"{base64String}\"}}]";
-            
             using (GetStandardHttpResultsFilter(dictResult))
             {
                 var result = appSettings.GetDictionary(SampleKey);
@@ -220,11 +208,11 @@
         }
 
         [Fact]
-        public void GetDictionary_ReturnsNull_IfNotFound()
+        public void GetDictionary_ThrowsKeyNotFoundException_IfNotFound()
         {
             using (GetErrorHttpResultsFilter())
             {
-                appSettings.GetDictionary(SampleKey).Should().BeNull();
+                Assert.Throws<KeyNotFoundException>(() => appSettings.GetDictionary(SampleKey));
             }
         }
 
@@ -250,11 +238,11 @@
         }
 
         [Fact]
-        public void GetList_ReturnsNull_IfNotFound()
+        public void GetList_ThrowsKeyNotFoundException_IfNotFound()
         {
             using (GetErrorHttpResultsFilter())
             {
-                appSettings.GetList(SampleKey).Should().BeNull();
+                Assert.Throws<KeyNotFoundException>(() => appSettings.GetList(SampleKey));
             }
         }
 
@@ -264,7 +252,7 @@
             VerifyGetEndpoint(() => appSettings.Set(SampleKey, 12345), "PUT");
         }
 
-        private static void VerifyGetEndpoint(Action callEndpoint, string verb = "GET")
+        private static void VerifyGetEndpoint(Action callEndpoint, string verb = "GET", string result = ConsulResultString)
         {
             HttpWebRequest webRequest = null;
 
@@ -273,7 +261,7 @@
                 StringResultFn = (request, s) =>
                 {
                     webRequest = request;
-                    return ConsulResultString;
+                    return result;
                 }
             })
             {
@@ -294,6 +282,19 @@
         private static HttpResultsFilter GetStandardHttpResultsFilter(string keysJson = ConsulResultString)
         {
             return new HttpResultsFilter { StringResult = keysJson };
+        }
+
+        private static Dictionary<string, string> GenerateDictionaryResponse(out string dictResult)
+        {
+            var dict = new Dictionary<string, string>
+            {
+                { "One", "ValOne" },
+                { "Two", "ValTwo" }
+            };
+
+            var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(TypeSerializer.SerializeToString(dict)));
+            dictResult = $"[{{\"Key\":\"Key1212\",\"Value\":\"{base64String}\"}}]";
+            return dict;
         }
     }
 

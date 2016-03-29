@@ -54,14 +54,14 @@
             catch (Exception ex)
             {
                 log.Error("Error getting all keys from Consul", ex);
-                return null;
+                throw;
             }
         }
 
         public bool Exists(string key)
         {
             // 404 returned if not found
-            var result = GetValue<string>(key, null);
+            var result = Get<string>(key, null);
             return result != null;
         }
 
@@ -80,38 +80,27 @@
 
         public string GetString(string name)
         {
-            return GetValue<string>(name, null);
+            return Get<string>(name);
         }
 
         public IList<string> GetList(string key)
         {
             // GET /{name}
-            return GetValue<List<string>>(key, null);
+            return Get<List<string>>(key);
         }
 
         public IDictionary<string, string> GetDictionary(string key)
         {
             // NOTE Is this enough?
-            return GetValue<Dictionary<string, string>>(key, null);
+            return Get<Dictionary<string, string>>(key);
         }
 
         public T Get<T>(string name)
-        {
-            return GetValue(name, default(T));
-        }
-
-        public T Get<T>(string name, T defaultValue)
-        {
-            return GetValue(name, defaultValue);
-        }
-
-        private T GetValue<T>(string name, T defaultValue)
         {
             name.ThrowIfNullOrEmpty("name");
 
             try
             {
-                // IF serialising to string then it just gets the base-64 string. Need to cast???;
                 var keyValues = GetKeyValue(name);
                 var value = keyValues.GetValue<T>();
 
@@ -125,22 +114,28 @@
             catch (WebException ex) when (ex.ToStatusCode() == 404)
             {
                 log.Error($"Unable to find config value with key {name}", ex);
-
-                // throw KeyNotFoundException here
-                return defaultValue;
+                throw new KeyNotFoundException($"Unable to find value with key {name}", ex);
             }
             catch (NotSupportedException ex)
             {
                 log.Error($"Unable to deserialise config value with key {name}", ex);
-
-                // throw something else or KNF???
-                return defaultValue;
+                throw new KeyNotFoundException($"Unable to deserialise value with key {name}", ex);
             }
             catch (Exception ex)
             {
                 log.Error($"Error getting string value for config key {name}", ex);
+                throw new KeyNotFoundException($"Error getting value with key {name}", ex);
+            }
+        }
 
-                // throw something else or KNF???
+        public T Get<T>(string name, T defaultValue)
+        {
+            try
+            {
+                return Get<T>(name);
+            }
+            catch (KeyNotFoundException)
+            {
                 return defaultValue;
             }
         }

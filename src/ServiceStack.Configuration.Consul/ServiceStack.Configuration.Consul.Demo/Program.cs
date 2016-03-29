@@ -1,5 +1,4 @@
-﻿
-namespace ServiceStack.Configuration.Consul.Demo
+﻿namespace ServiceStack.Configuration.Consul.Demo
 {
     using System;
     using System.Diagnostics;
@@ -40,7 +39,13 @@ namespace ServiceStack.Configuration.Consul.Demo
         {
             SetConfig(new HostConfig { WebHostUrl = serviceUrl });
 
-            Container.Register<IAppSettings>(new ConsulAppSettings());
+            AppSettings = new ConsulAppSettings();
+
+            // Uncomment the following line to use Multi cascading IAppSetting providers
+            /*AppSettings = new MultiAppSettings(
+                new ConsulAppSettings(),
+                new AppSettings(), 
+                new EnvironmentVariableSettings());*/
         }
     }
 
@@ -53,13 +58,26 @@ namespace ServiceStack.Configuration.Consul.Demo
             if (string.Equals(key.Key, "all", StringComparison.InvariantCultureIgnoreCase))
                 return AppSettings.GetAllKeys();
 
-            return AppSettings.GetString(key.Key);
+            var result = AppSettings.GetString(key.Key);
+            if (!string.IsNullOrEmpty(result))
+                return result;
+
+            throw HttpError.NotFound($"Could not find config value with key {key.Key}");
+        }
+        
+        public object Put(KeyRequest key)
+        {
+            AppSettings.Set(key.Key, key.Body);
+            return key;
         }
     }
 
+    [DebuggerDisplay("{Key} - {Body}")]
+    [Route("/keys/{Key}")]
     public class KeyRequest : IReturn<object>
     {
         public string Key { get; set; }
-        public string Type { get; set; } = "string";
+
+        public object Body { get; set; }
     }
 }

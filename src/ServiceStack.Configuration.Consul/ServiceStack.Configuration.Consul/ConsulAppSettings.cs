@@ -26,7 +26,9 @@
             keyValueEndpoint = $"{consulUri}/v1/kv/";
         }
 
-        // Default this to localhost/default port
+        /// <summary>
+        /// Instantiates new ConsulAppSettings object using local consul agent (http://127.0.0.1:8500/)
+        /// </summary>
         public ConsulAppSettings() : this("http://127.0.0.1:8500/")
         {
         }
@@ -64,7 +66,6 @@
 
         public bool Exists(string key)
         {
-            // 404 returned if not found
             var result = Get<string>(key, null);
             return result != null;
         }
@@ -73,7 +74,6 @@
         {
             key.ThrowIfNullOrEmpty("key");
 
-            // PUT. Throw if != true
             var keyVal = KeyValue.Create(key, value);
             string result;
             try
@@ -87,6 +87,7 @@
                 throw new ConfigurationErrorsException($"Error setting configuration key {key}", ex);
             }
 
+            // Consul returns true|false to signify success
             bool success;
             if (!bool.TryParse(result, out success) || !success)
             {
@@ -148,7 +149,6 @@
             }
         }
 
-        // Catch with invalid type serialize?
         private KeyValue GetKeyValue(string name)
         {
             var keyVal = KeyValue.Create(name);

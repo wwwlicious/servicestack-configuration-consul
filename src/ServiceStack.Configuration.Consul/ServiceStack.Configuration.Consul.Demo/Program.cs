@@ -40,13 +40,14 @@ namespace ServiceStack.Configuration.Consul.Demo
         {
             SetConfig(new HostConfig { WebHostUrl = serviceUrl });
 
-            Container.Register<IAppSettings>(new ConsulAppSettings("http://127.0.0.1:8500/"));
+            Container.Register<IAppSettings>(new ConsulAppSettings());
         }
     }
 
     public class MyService : Service
     {
         public IAppSettings AppSettings { get; set; }
+
         public object Get(KeyRequest key)
         {
             if (string.Equals(key.Key, "all", StringComparison.InvariantCultureIgnoreCase))
@@ -59,5 +60,6 @@ namespace ServiceStack.Configuration.Consul.Demo
     public class KeyRequest : IReturn<object>
     {
         public string Key { get; set; }
+        public string Type { get; set; } = "string";
     }
 }

@@ -60,11 +60,11 @@
         }
 
         [Fact]
-        public void GetAllKeys_ReThrows_AnyErrors()
+        public void GetAllKeys_ReturnsNull_OnError()
         {
             using (GetErrorHttpResultsFilter())
             {
-                Assert.Throws<WebException>(() => appSettings.GetAllKeys());
+                appSettings.GetAllKeys().Should().BeNull();
             }
         }
 
@@ -81,6 +81,14 @@
                 result[0].Should().Be("mates");
                 result[1].Should().Be("place");
             }
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void Exists_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
+        {
+            Assert.Throws<ArgumentNullException>(() => appSettings.Exists(name));
         }
 
         [Fact]
@@ -107,6 +115,14 @@
             }
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void GetString_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
+        {
+            Assert.Throws<ArgumentNullException>(() => appSettings.GetString(name));
+        }
+
         [Fact]
         public void GetString_CallsGetEndpoint()
         {
@@ -123,12 +139,20 @@
         }
 
         [Fact]
-        public void GetString_ThrowsKeyNotFoundException_IfNotFound()
+        public void GetString_ReturnsNull_IfNotFound()
         {
             using (GetErrorHttpResultsFilter())
             {
-                Assert.Throws<KeyNotFoundException>(() => appSettings.GetString(SampleKey));
+                appSettings.GetString(SampleKey).Should().BeNull();
             }
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void Get_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
+        {
+            Assert.Throws<ArgumentNullException>(() => appSettings.Get<object>(name));
         }
 
         [Fact]
@@ -149,12 +173,29 @@
         }
 
         [Fact]
-        public void Get_ThrowsKeyNotFoundException_IfNotFound_ReferenceType()
+        public void Get_ReturnsNull_IfNotFound_ReferenceType()
         {
             using (GetErrorHttpResultsFilter())
             {
-                Assert.Throws<KeyNotFoundException>(() => appSettings.Get<Human>(SampleKey));
+                appSettings.Get<Human>(SampleKey).Should().BeNull();
             }
+        }
+
+        [Fact]
+        public void Get_ReturnsDefault_IfNotFound_ValueType()
+        {
+            using (GetErrorHttpResultsFilter())
+            {
+                appSettings.Get<int>(SampleKey).Should().Be(0);
+            }
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void GetWithFallback_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
+        {
+            Assert.Throws<ArgumentNullException>(() => appSettings.Get(name, 22));
         }
 
         [Fact]
@@ -186,11 +227,19 @@
             }
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void GetDictionary_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
+        {
+            Assert.Throws<ArgumentNullException>(() => appSettings.GetDictionary(name));
+        }
+
         [Fact]
         public void GetDictionary_CallsGetEndpoint()
         {
             string dictResult;
-            Dictionary<string, string> dict = GenerateDictionaryResponse(out dictResult);
+            GenerateDictionaryResponse(out dictResult);
 
             VerifyGetEndpoint(() => appSettings.GetDictionary(SampleKey), result: dictResult);
         }
@@ -209,12 +258,20 @@
         }
 
         [Fact]
-        public void GetDictionary_ThrowsKeyNotFoundException_IfNotFound()
+        public void GetDictionary_ReturnsNull_IfNotFound()
         {
             using (GetErrorHttpResultsFilter())
             {
-                Assert.Throws<KeyNotFoundException>(() => appSettings.GetDictionary(SampleKey));
+                appSettings.GetDictionary(SampleKey).Should().BeNull();
             }
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void GetList_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
+        {
+            Assert.Throws<ArgumentNullException>(() => appSettings.GetList(name));
         }
 
         [Fact]
@@ -239,12 +296,20 @@
         }
 
         [Fact]
-        public void GetList_ThrowsKeyNotFoundException_IfNotFound()
+        public void GetList_ReturnsNull_IfNotFound()
         {
             using (GetErrorHttpResultsFilter())
             {
-                Assert.Throws<KeyNotFoundException>(() => appSettings.GetList(SampleKey));
+                appSettings.GetList(SampleKey).Should().BeNull();
             }
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void Set_ThrowsArgumentNullException_IfNullOrEmptyNamePassed(string name)
+        {
+            Assert.Throws<ArgumentNullException>(() => appSettings.Set(name, 123));
         }
 
         [Fact]
@@ -421,11 +486,5 @@
             dictResult = $"[{{\"Key\":\"Key1212\",\"Value\":\"{base64String}\"}}]";
             return dict;
         }
-    }
-
-    public class Human
-    {
-        public int Age { get; set; }
-        public string Name { get; set; }
     }
 }

@@ -38,7 +38,11 @@
             var all = new Dictionary<string, string>();
             foreach (var key in allkeys)
             {
-                all.Add(key, GetString(key));
+                var value = GetString(key);
+                if (value != null)
+                {
+                    all.Add(key, value);
+                }
             }
 
             return all;
@@ -54,7 +58,7 @@
             catch (Exception ex)
             {
                 log.Error("Error getting all keys from Consul", ex);
-                throw;
+                return null;
             }
         }
 
@@ -67,6 +71,8 @@
 
         public void Set<T>(string key, T value)
         {
+            key.ThrowIfNullOrEmpty("key");
+
             // PUT. Throw if != true
             var keyVal = KeyValue.Create(key, value);
             string result;
@@ -91,22 +97,25 @@
 
         public string GetString(string name)
         {
-            return Get<string>(name);
+            return Get<string>(name, null);
         }
 
         public IList<string> GetList(string key)
         {
-            // GET /{name}
-            return Get<List<string>>(key);
+            return Get<List<string>>(key, null);
         }
 
         public IDictionary<string, string> GetDictionary(string key)
         {
-            // NOTE Is this enough?
-            return Get<Dictionary<string, string>>(key);
+            return Get<Dictionary<string, string>>(key, null);
         }
 
         public T Get<T>(string name)
+        {
+            return Get(name, default(T));
+        }
+
+        public T Get<T>(string name, T defaultValue)
         {
             name.ThrowIfNullOrEmpty("name");
 
@@ -125,28 +134,16 @@
             catch (WebException ex) when (ex.ToStatusCode() == 404)
             {
                 log.Error($"Unable to find config value with key {name}", ex);
-                throw new KeyNotFoundException($"Unable to find value with key {name}", ex);
+                return defaultValue;
             }
             catch (NotSupportedException ex)
             {
                 log.Error($"Unable to deserialise config value with key {name}", ex);
-                throw new KeyNotFoundException($"Unable to deserialise value with key {name}", ex);
+                return defaultValue;
             }
             catch (Exception ex)
             {
                 log.Error($"Error getting string value for config key {name}", ex);
-                throw new KeyNotFoundException($"Error getting value with key {name}", ex);
-            }
-        }
-
-        public T Get<T>(string name, T defaultValue)
-        {
-            try
-            {
-                return Get<T>(name);
-            }
-            catch (KeyNotFoundException)
-            {
                 return defaultValue;
             }
         }

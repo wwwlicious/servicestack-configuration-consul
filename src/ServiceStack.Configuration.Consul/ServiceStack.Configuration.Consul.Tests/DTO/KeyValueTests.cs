@@ -95,10 +95,4 @@ namespace ServiceStack.Configuration.Consul.Tests.DTO
             result.Age.Should().Be(2);
         }
     }
-
-    public class Human
-    {
-        public int Age { get; set; }
-        public string Name { get; set; }
-    }
 }

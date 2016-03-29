@@ -13,8 +13,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demo", "Demo", "{6F91733F-2
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceStack.Configuration.Consul.Demo", "ServiceStack.Configuration.Consul.Demo\ServiceStack.Configuration.Consul.Demo.csproj", "{0C803119-0570-411A-B131-DC45C9BE9321}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceStack.Configuration.Consul.IntTests", "ServiceStack.Configuration.Consul.IntTests\ServiceStack.Configuration.Consul.IntTests.csproj", "{2FA7D7A5-D97C-488B-8D71-D155D9BEF21F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,10 +31,6 @@ Global
 		{0C803119-0570-411A-B131-DC45C9BE9321}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C803119-0570-411A-B131-DC45C9BE9321}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C803119-0570-411A-B131-DC45C9BE9321}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2FA7D7A5-D97C-488B-8D71-D155D9BEF21F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2FA7D7A5-D97C-488B-8D71-D155D9BEF21F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2FA7D7A5-D97C-488B-8D71-D155D9BEF21F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2FA7D7A5-D97C-488B-8D71-D155D9BEF21F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -45,6 +39,5 @@ Global
 		{1E4A6C11-29FC-4AAD-A741-9B3B0373F03C} = {99DF0B63-9A94-45CD-8275-5A65117F4D4E}
 		{6F91733F-24B7-4AF4-8DB8-34ECAE2015FE} = {99DF0B63-9A94-45CD-8275-5A65117F4D4E}
 		{0C803119-0570-411A-B131-DC45C9BE9321} = {6F91733F-24B7-4AF4-8DB8-34ECAE2015FE}
-		{2FA7D7A5-D97C-488B-8D71-D155D9BEF21F} = {99DF0B63-9A94-45CD-8275-5A65117F4D4E}
 	EndGlobalSection
 EndGlobal

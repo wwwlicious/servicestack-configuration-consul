@@ -353,6 +353,30 @@
             }
         }
 
+        [Fact]
+        public void Ctor_WithConsulUri_UsesUriForCalls()
+        {
+            // NOTE Only testing 1 single call here
+            HttpWebRequest webRequest = null;
+
+            using (new HttpResultsFilter
+            {
+                StringResultFn = (request, s) =>
+                {
+                    webRequest = request;
+                    return ConsulResultString;
+                }
+            })
+            {
+                const string consulUri = "http://8.8.8.8:1212";
+                new ConsulAppSettings(consulUri).GetAllKeys();
+
+                var expected = new Uri($"{consulUri}/v1/kv/?keys");
+
+                webRequest.RequestUri.Should().Be(expected);
+            }
+        }
+
         private static void VerifyGetEndpoint(Action callEndpoint, string verb = "GET", string result = ConsulResultString)
         {
             HttpWebRequest webRequest = null;

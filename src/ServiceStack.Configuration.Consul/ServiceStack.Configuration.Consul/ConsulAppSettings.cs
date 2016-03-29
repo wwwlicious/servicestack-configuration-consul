@@ -15,7 +15,6 @@
         private readonly string consulUri;
         private readonly ILog log = LogManager.GetLogger(typeof(ConsulAppSettings));
 
-        // TODO Handle consul not being available - circuit breaker?
         public ConsulAppSettings(string consulUri)
         {
             consulUri.ThrowIfNullOrEmpty("consulUri");

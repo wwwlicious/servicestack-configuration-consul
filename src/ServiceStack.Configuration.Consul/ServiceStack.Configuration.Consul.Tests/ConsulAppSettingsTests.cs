@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Net;
     using System.Text;
     using FluentAssertions;
@@ -249,7 +250,107 @@
         [Fact]
         public void Set_CallsSetEndpoint()
         {
-            VerifyGetEndpoint(() => appSettings.Set(SampleKey, 12345), "PUT");
+            VerifyGetEndpoint(() => appSettings.Set(SampleKey, 12345), "PUT", "true");
+        }
+
+        [Fact]
+        public void Set_DoesNotThrow_IfAdded()
+        {
+            HttpWebRequest webRequest = null;
+            var human = new Human { Age = 2, Name = "Toddler" };
+
+            using (GetStandardHttpResultsFilter("true"))
+            {
+                appSettings.Set(SampleKey, human);
+            }
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("false")]
+        [InlineData("")]
+        public void Set_ThrowsException_IfNotAdded(string result)
+        {
+            HttpWebRequest webRequest = null;
+            var human = new Human { Age = 2, Name = "Toddler" };
+
+            using (GetStandardHttpResultsFilter(result))
+            {
+                Assert.Throws<ConfigurationErrorsException>(() => appSettings.Set(SampleKey, human));
+            }
+        }
+
+        [Fact]
+        public void GetAll_GetsAllKeys()
+        {
+            Uri firstUri = null;
+
+            using (new HttpResultsFilter
+            {
+                StringResultFn = (request, s) =>
+                {
+                    if (firstUri == null)
+                        firstUri = request.RequestUri;
+                    return ConsulResultString;
+                }
+            })
+            {
+                appSettings.GetAll();
+
+                var expected = new Uri($"{DefaultUrl}?keys");
+
+                firstUri.Should().Be(expected);
+            }
+        }
+
+        [Fact]
+        public void GetAll_CallsGet_ForEveryFoundKey()
+        {
+            const string keysJson = "[ \"mates\", \"place\"]";
+
+            var callList = new List<Uri>();
+            int count = 0;
+
+            using (new HttpResultsFilter
+            {
+                StringResultFn = (request, s) =>
+                {
+                    if (count++ > 0)
+                    {
+                        callList.Add(request.RequestUri);
+                        return ConsulResultString;
+                    }
+                    return keysJson;
+                }
+            })
+            {
+                appSettings.GetAll();
+
+                callList[0].Should().Be(new Uri($"{DefaultUrl}mates"));
+                callList[1].Should().Be(new Uri($"{DefaultUrl}place"));
+            }
+        }
+
+        [Fact]
+        public void GetAll_ReturnsCorrectKeys()
+        {
+            const string keysJson = "[ \"mates\", \"place\"]";
+
+            int count = 0;
+
+            using (new HttpResultsFilter
+            {
+                StringResultFn = (request, s) =>
+                {
+                    return count++ > 0 ? ConsulResultString : keysJson;
+                }
+            })
+            {
+                var results = appSettings.GetAll();
+
+                results.Count.Should().Be(2);
+                results.Should().ContainKeys("mates", "place");
+            }
         }
 
         private static void VerifyGetEndpoint(Action callEndpoint, string verb = "GET", string result = ConsulResultString)

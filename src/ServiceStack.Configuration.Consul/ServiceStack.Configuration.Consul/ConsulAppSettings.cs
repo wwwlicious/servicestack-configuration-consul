@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Linq;
     using System.Net;
     using Configuration;
@@ -69,12 +70,23 @@
         {
             // PUT. Throw if != true
             var keyVal = KeyValue.Create(key, value);
-            var result = consulUri.CombineWith(keyVal.ToPutUrl()).PutJsonToUrl(keyVal.Value);
+            string result;
+            try
+            {
+                result = consulUri.CombineWith(keyVal.ToPutUrl()).PutJsonToUrl(keyVal.Value);
+            }
+            catch (Exception ex)
+            {
+                var message = $"Error setting value {value} to configuration {key}";
+                log.Error(message, ex);
+                throw new ConfigurationErrorsException($"Error setting configuration key {key}", ex);
+            }
 
             bool success;
             if (!bool.TryParse(result, out success) || !success)
             {
-                // TODO throw a wee error
+                log.Warn($"Error setting value {value} to configuration {key}");
+                throw new ConfigurationErrorsException($"Error setting configuration key {key}");
             }
         }
 

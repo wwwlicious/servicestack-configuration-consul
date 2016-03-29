@@ -61,7 +61,7 @@
         public bool Exists(string key)
         {
             // 404 returned if not found
-            var result = GetIt<string>(key, null);
+            var result = GetValue<string>(key, null);
             return result != null;
         }
 
@@ -81,32 +81,32 @@
 
         public string GetString(string name)
         {
-            return GetIt<string>(name, null);
+            return GetValue<string>(name, null);
         }
 
         public IList<string> GetList(string key)
         {
             // GET /{name}
-            return GetIt<List<string>>(key, null);
+            return GetValue<List<string>>(key, null);
         }
 
         public IDictionary<string, string> GetDictionary(string key)
         {
             // NOTE Is this enough?
-            return GetIt<Dictionary<string, string>>(key, null);
+            return GetValue<Dictionary<string, string>>(key, null);
         }
 
         public T Get<T>(string name)
         {
-            return GetIt(name, default(T));
+            return GetValue(name, default(T));
         }
 
         public T Get<T>(string name, T defaultValue)
         {
-            return GetIt(name, defaultValue);
+            return GetValue(name, defaultValue);
         }
 
-        private T GetIt<T>(string name, T defaultValue)
+        private T GetValue<T>(string name, T defaultValue)
         {
             name.ThrowIfNullOrEmpty("name");
 

@@ -11,8 +11,8 @@
 
         // NOTE This is a sample result that just returns "testString"
         private const string SampleConsulResult = "[{\"Key\":\"string1\",\"Value\":\"dGVzdFN0cmluZw==\"}]";
-
-        private const string defaultUrl = "http://127.0.0.1:8500/v1/kv/";
+        private const string DefaultUrl = "http://127.0.0.1:8500/v1/kv/";
+        private const string SampleKey = "Key1212";
 
         public ConsulAppSettingsTests()
         {
@@ -43,7 +43,7 @@
             {
                 appSettings.GetAllKeys();
 
-                var expected = new Uri($"{defaultUrl}?keys");
+                var expected = new Uri($"{DefaultUrl}?keys");
 
                 webRequest.RequestUri.Should().Be(expected);
             }
@@ -52,13 +52,7 @@
         [Fact]
         public void GetAllKeys_ReturnsNullIfErrorThrown()
         {
-            using (new HttpResultsFilter
-            {
-                StringResultFn = (request, s) =>
-                {
-                    throw new WebException();
-                }
-            })
+            using (GetErrorHttpResultsFilter())
             {
                 appSettings.GetAllKeys().Should().BeNull();
             }
@@ -69,7 +63,7 @@
         {
             const string keysJson = "[ \"mates\", \"place\"]";
 
-            using (new HttpResultsFilter { StringResult = keysJson })
+            using (GetStandardHttpResultsFilter(keysJson))
             {
                 var result = appSettings.GetAllKeys();
 
@@ -77,6 +71,56 @@
                 result[0].Should().Be("mates");
                 result[1].Should().Be("place");
             }
+        }
+
+        [Fact]
+        public void Exists_CallsGetEndpoint()
+        {
+            HttpWebRequest webRequest = null;
+
+            using (new HttpResultsFilter
+            {
+                StringResultFn = (request, s) =>
+                {
+                    webRequest = request;
+                    return SampleConsulResult;
+                }
+            })
+            {
+                appSettings.Exists(SampleKey);
+
+                var expected = new Uri($"{DefaultUrl}{SampleKey}");
+
+                webRequest.RequestUri.Should().Be(expected);
+            }
+        }
+
+        [Fact]
+        public void Exists_ReturnsTrue_IfKeyFound()
+        {
+            using (GetStandardHttpResultsFilter())
+            {
+                appSettings.Exists(SampleKey).Should().BeTrue();
+            }
+        }
+
+        [Fact]
+        public void Exists_ReturnsFalse_IfKeyNotFound()
+        {
+            using (GetErrorHttpResultsFilter())
+            {
+                appSettings.Exists(SampleKey).Should().BeFalse();
+            }
+        }
+
+        private static HttpResultsFilter GetErrorHttpResultsFilter()
+        {
+            return new HttpResultsFilter { StringResultFn = (request, s) => { throw new WebException(); } };
+        }
+
+        private static HttpResultsFilter GetStandardHttpResultsFilter(string keysJson = SampleConsulResult)
+        {
+            return new HttpResultsFilter { StringResult = keysJson };
         }
     }
 }

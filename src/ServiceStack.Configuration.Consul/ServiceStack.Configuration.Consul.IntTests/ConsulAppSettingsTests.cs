@@ -7,7 +7,7 @@ namespace ServiceStack.Configuration.Consul.IntTests
     [Trait("Category", "Consul")]
     public class ConsulAppSettingsTests
     {
-        private readonly IAppSettings appSettings;
+        /*private readonly IAppSettings appSettings;
         public ConsulAppSettingsTests()
         {
             appSettings = new ConsulAppSettings("http://127.0.0.1:8500/");
@@ -88,7 +88,7 @@ namespace ServiceStack.Configuration.Consul.IntTests
 
             var human = appSettings.Get<Human>(key);
             human.Should().Be(x);
-        }
+        }*/
     }
 
     public class Dog

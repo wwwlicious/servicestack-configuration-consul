@@ -19,7 +19,7 @@
 
         public T GetValue<T>()
         {
-            return JsonSerializer.DeserializeFromString<T>(Value);
+            return TypeSerializer.DeserializeFromString<T>(Value);
         }
 
         public static KeyValue Create(string key)
@@ -32,7 +32,7 @@
             return new KeyValue
             {
                 Key = key,
-                RawValue = Encoding.UTF8.GetBytes(JsonSerializer.SerializeToString(value))
+                RawValue = Encoding.UTF8.GetBytes(TypeSerializer.SerializeToString(value))
             };
         }
     }

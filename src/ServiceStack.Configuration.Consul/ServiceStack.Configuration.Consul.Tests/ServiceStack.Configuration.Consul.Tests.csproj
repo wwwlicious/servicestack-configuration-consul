@@ -84,7 +84,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="KeyValueTests.cs" />
+    <Compile Include="ConsulAppSettingsTests.cs" />
+    <Compile Include="DTO\KeyValueTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -18,8 +18,7 @@
         public ConsulAppSettings(string consulUri)
         {
             consulUri.ThrowIfNullOrEmpty("consulUri");
-
-
+            
             if (consulUri.EndsWith("/"))
                 consulUri = consulUri.Substring(0, consulUri.Length - 1);
 
@@ -34,7 +33,6 @@
 
         public Dictionary<string, string> GetAll()
         {
-            // Get all keys then get all???
             var allkeys = GetAllKeys();
 
             var all = new Dictionary<string, string>();
@@ -49,7 +47,15 @@
         public List<string> GetAllKeys()
         {
             // GET ?keys []
-            return $"{keyValueEndpoint}?keys".GetJsonFromUrl().FromJson<List<string>>();
+            try
+            {
+                return $"{keyValueEndpoint}?keys".GetJsonFromUrl().FromJson<List<string>>();
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error getting all keys from Consul", ex);
+                return null;
+            }
         }
 
         public bool Exists(string key)
@@ -138,7 +144,8 @@
         private KeyValue GetKeyValue(string name)
         {
             var keyVal = KeyValue.Create(name);
-            var keyValues = consulUri.CombineWith(keyVal.ToGetUrl()).GetJsonFromUrl().FromJson<List<KeyValue>>();
+            var jsonFromUrl = consulUri.CombineWith(keyVal.ToGetUrl()).GetJsonFromUrl();
+            var keyValues = jsonFromUrl.FromJson<List<KeyValue>>();
             var value = keyValues.First();
             return value;
         }

@@ -1,8 +1,8 @@
 ﻿
-namespace ServiceStack.Configuration.Consul.Tests
+namespace ServiceStack.Configuration.Consul.Tests.DTO
 {
     using System.Text;
-    using DTO;
+    using Consul.DTO;
     using FluentAssertions;
     using Text;
     using Xunit;
@@ -81,7 +81,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             var human = new Human { Name = "Toddler", Age = 2 };
             var key = KeyValue.Create(TestKey, human);
 
-            key.Value.Should().Be("{\"Age\":2,\"Name\":\"Toddler\"}");
+            key.Value.Should().Be("{Age:2,Name:Toddler}");
         }
 
         [Fact]

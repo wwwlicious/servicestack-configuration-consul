@@ -1,15 +1,14 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ServiceStack.Configuration.Consul.Demo")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("ServiceStack.Configuration.Consul")]
+[assembly: AssemblyDescription("Implementation if ServiceStack's IAppSettings interface using Consul Key/Value as backing store.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ServiceStack.Configuration.Consul.Demo")]
+[assembly: AssemblyCompany("MacLean Electrical")]
+[assembly: AssemblyProduct("ServiceStack.Configuration.Consul")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +19,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("0c803119-0570-411a-b131-dc45c9be9321")]
+[assembly: Guid("d5a42fff-2a9a-446a-8d3c-8d3eb5fc7546")]
 
 // Version information for an assembly consists of the following four values:
 //

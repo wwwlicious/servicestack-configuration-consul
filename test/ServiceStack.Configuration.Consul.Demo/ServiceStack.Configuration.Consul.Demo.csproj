@@ -71,7 +71,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ServiceStack.Configuration.Consul\ServiceStack.Configuration.Consul\ServiceStack.Configuration.Consul.csproj">
+    <ProjectReference Include="..\..\src\ServiceStack.Configuration.Consul\ServiceStack.Configuration.Consul.csproj">
       <Project>{d5a42fff-2a9a-446a-8d3c-8d3eb5fc7546}</Project>
       <Name>ServiceStack.Configuration.Consul</Name>
     </ProjectReference>

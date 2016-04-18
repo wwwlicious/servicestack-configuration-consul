@@ -17,19 +17,16 @@
 
         public ConsulAppSettings(string consulUri)
         {
-            consulUri.ThrowIfNullOrEmpty("consulUri");
+            consulUri.ThrowIfNullOrEmpty(nameof(consulUri));
             
-            if (consulUri.EndsWith("/"))
-                consulUri = consulUri.Substring(0, consulUri.Length - 1);
-
             this.consulUri = consulUri;
-            keyValueEndpoint = $"{consulUri}/v1/kv/";
+            keyValueEndpoint = consulUri.CombineWith("/v1/kv/");
         }
 
         /// <summary>
-        /// Instantiates new ConsulAppSettings object using local consul agent (http://127.0.0.1:8500/)
+        /// Instantiates new ConsulAppSettings object using local consul agent (http://127.0.0.1:8500)
         /// </summary>
-        public ConsulAppSettings() : this("http://127.0.0.1:8500/")
+        public ConsulAppSettings() : this("http://127.0.0.1:8500")
         {
         }
 
@@ -72,7 +69,7 @@
 
         public void Set<T>(string key, T value)
         {
-            key.ThrowIfNullOrEmpty("key");
+            key.ThrowIfNullOrEmpty(nameof(key));
 
             var keyVal = KeyValue.Create(key, value);
             string result;
@@ -118,7 +115,7 @@
 
         public T Get<T>(string name, T defaultValue)
         {
-            name.ThrowIfNullOrEmpty("name");
+            name.ThrowIfNullOrEmpty(nameof(name));
 
             try
             {

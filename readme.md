@@ -14,11 +14,13 @@ This will start Consul running and accessible on http://127.0.0.1:8500.  You sho
 
 
 # Quick Start
-The ConsulAppSetting is setup like any other implementation of AppSettings. To set ConsulAppSettings as the default IAppSettings implementation for an AppHost add the following linke while configuring an AppHost:
+The ConsulAppSetting is setup like any other implementation of AppSettings. To set ConsulAppSettings as the default IAppSettings implementation for an AppHost add the following line while configuring an AppHost:
 
 ```csharp
 public override void Configure(Container container)
 {
+    // ..standard setup... 
+	
     AppSettings = new ConsulAppSettings();
 }
 ```
@@ -48,3 +50,5 @@ ServiceStack.Configuration.Consul.Demo is a console app that starts a self hoste
 * GET http://127.0.0.1:8093/keys/all - get all key names
 * GET http://127.0.0.1:8093/keys/{key} - get config value with specified key
 * PUT http://127.0.0.1:8093/keys/{key}, body: {Body:testtest}, header: content-type=application/jsv - create new config value with specified name and content.
+
+The "Postman Samples" folder contains a sample [Postman](https://www.getpostman.com/) collection containing sample calls. Use the "Import" function in Postman to import this collection, this contains sample PUT and GET requests that can be run against the demo service.

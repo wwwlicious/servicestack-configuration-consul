@@ -1,4 +1,8 @@
-﻿namespace ServiceStack.Configuration.Consul.DTO
+﻿// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this 
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+namespace ServiceStack.Configuration.Consul.DTO
 {
     using System.Runtime.Serialization;
     using System.Text;
@@ -15,7 +19,7 @@
         public byte[] RawValue { get; set; }
 
         [IgnoreDataMember]
-        public string Value => Encoding.UTF8.GetString(RawValue);
+        public string Value => Encoding.UTF8.GetString(RawValue ?? new byte[0]);
 
         public T GetValue<T>()
         {

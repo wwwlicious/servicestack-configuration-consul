@@ -19,7 +19,7 @@ namespace ServiceStack.Configuration.Consul.DTO
         public byte[] RawValue { get; set; }
 
         [IgnoreDataMember]
-        public string Value => Encoding.UTF8.GetString(RawValue);
+        public string Value => Encoding.UTF8.GetString(RawValue ?? new byte[0]);
 
         public T GetValue<T>()
         {

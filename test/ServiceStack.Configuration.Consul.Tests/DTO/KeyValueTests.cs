@@ -17,21 +17,21 @@ namespace ServiceStack.Configuration.Consul.Tests.DTO
         [Fact]
         public void KeyValue_HasRouteAttribute()
         {
-            var routeAttribute = typeof(KeyValue).FirstAttribute<RouteAttribute>();
+            var routeAttribute = typeof (KeyValue).FirstAttribute<RouteAttribute>();
             routeAttribute.Should().NotBeNull();
         }
 
         [Fact]
         public void KeyValue_HasRouteAttribute_WithCorrectRoute()
         {
-            var routeAttribute = typeof(KeyValue).FirstAttribute<RouteAttribute>();
+            var routeAttribute = typeof (KeyValue).FirstAttribute<RouteAttribute>();
             routeAttribute.Path.Should().Be("/v1/kv/{Key}");
         }
 
         [Fact]
         public void KeyValue_HasRouteAttribute_WithGetAndPutVerbs()
         {
-            var routeAttribute = typeof(KeyValue).FirstAttribute<RouteAttribute>();
+            var routeAttribute = typeof (KeyValue).FirstAttribute<RouteAttribute>();
             routeAttribute.Verbs.Should().Be("GET,PUT");
         }
 
@@ -96,6 +96,15 @@ namespace ServiceStack.Configuration.Consul.Tests.DTO
             var result = key.GetValue<Human>();
             result.Name.Should().Be("Toddler");
             result.Age.Should().Be(2);
+        }
+
+        [Fact]
+        public void Value_HandlesNullRawValue()
+        {
+            var key = new KeyValue();
+            var value = key.Value;
+
+            value.Should().BeEmpty();
         }
     }
 }

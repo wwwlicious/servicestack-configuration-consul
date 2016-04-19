@@ -51,4 +51,4 @@ ServiceStack.Configuration.Consul.Demo is a console app that starts a self hoste
 * GET http://127.0.0.1:8093/keys/{key} - get config value with specified key
 * PUT http://127.0.0.1:8093/keys/{key}, body: {Body:testtest}, header: content-type=application/jsv - create new config value with specified name and content.
 
-The "Postman Samples" folder contains a sample [Postman](https://www.getpostman.com/) collection containing sample calls.
+The "Postman Samples" folder contains a sample [Postman](https://www.getpostman.com/) collection containing sample calls. Use the "Import" function in Postman to import this collection, this contains sample PUT and GET requests that can be run against the demo service.

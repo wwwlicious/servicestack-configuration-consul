@@ -14,7 +14,7 @@ This will start Consul running and accessible on http://127.0.0.1:8500.  You sho
 
 
 # Quick Start
-The ConsulAppSetting is setup like any other implementation of AppSettings. To set ConsulAppSettings as the default IAppSettings implementation for an AppHost add the following line while configuring an AppHost:
+The `ConsulAppSetting` is setup like any other implementation of AppSettings. To set `ConsulAppSettings` as the default `IAppSettings` implementation for an AppHost add the following line while configuring an AppHost:
 
 ```csharp
 public override void Configure(Container container)
@@ -24,7 +24,7 @@ public override void Configure(Container container)
     AppSettings = new ConsulAppSettings();
 }
 ```
-ConsulAppSettings also works as part of a cascading configuration setup using MultiAppSettings. The following will check Consul first, then local appSetting (app.config/web.config) before finally checking Environment variables.
+`ConsulAppSettings` also works as part of a cascading configuration setup using `MultiAppSettings`. The following will check Consul first, then local appSetting (app.config/web.config) before finally checking Environment variables.
 
 ```csharp
 AppSettings = new MultiAppSettings(
@@ -33,7 +33,7 @@ AppSettings = new MultiAppSettings(
     new EnvironmentVariableSettings());
 ```
 
-The IAppSetting instances can be auto-wired into services like all other dependencies:
+The `IAppSetting` instances can be auto-wired into services like all other dependencies:
 
 ```csharp
 public class MyService : Service

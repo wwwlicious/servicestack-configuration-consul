@@ -13,6 +13,9 @@ namespace ServiceStack.Configuration.Consul
     using DTO;
     using Logging;
 
+    /// <summary>
+    /// Implementation of IAppSettings using Consul K/V as backing store
+    /// </summary>
     public class ConsulAppSettings : IAppSettings
     {
         private readonly string keyValueEndpoint;
@@ -34,24 +37,24 @@ namespace ServiceStack.Configuration.Consul
         {
         }
 
-        public Dictionary<string, string> GetAll()
+        public virtual Dictionary<string, string> GetAll()
         {
             var allkeys = GetAllKeys();
 
             var all = new Dictionary<string, string>();
             foreach (var key in allkeys)
             {
-                var value = GetString(key);
+                var value = Get<object>(key);
                 if (value != null)
                 {
-                    all.Add(key, value);
+                    all.Add(key, value.ToString());
                 }
             }
 
             return all;
         }
 
-        public List<string> GetAllKeys()
+        public virtual List<string> GetAllKeys()
         {
             // GET ?keys []
             try
@@ -65,13 +68,13 @@ namespace ServiceStack.Configuration.Consul
             }
         }
 
-        public bool Exists(string key)
+        public virtual bool Exists(string key)
         {
-            var result = Get<string>(key, null);
+            var result = GetFromConsul<string>(key, null);
             return result != null;
         }
 
-        public void Set<T>(string key, T value)
+        public virtual void Set<T>(string key, T value)
         {
             key.ThrowIfNullOrEmpty(nameof(key));
 
@@ -97,27 +100,32 @@ namespace ServiceStack.Configuration.Consul
             }
         }
 
-        public string GetString(string name)
+        public virtual string GetString(string name)
         {
-            return Get<string>(name, null);
+            return GetFromConsul<string>(name, null);
         }
 
-        public IList<string> GetList(string key)
+        public virtual IList<string> GetList(string key)
         {
-            return Get<List<string>>(key, null);
+            return GetFromConsul<List<string>>(key, null);
         }
 
-        public IDictionary<string, string> GetDictionary(string key)
+        public virtual IDictionary<string, string> GetDictionary(string key)
         {
-            return Get<Dictionary<string, string>>(key, null);
+            return GetFromConsul<Dictionary<string, string>>(key, null);
         }
 
-        public T Get<T>(string name)
+        public virtual T Get<T>(string name)
         {
-            return Get(name, default(T));
+            return GetFromConsul(name, default(T));
         }
 
-        public T Get<T>(string name, T defaultValue)
+        public virtual T Get<T>(string name, T defaultValue)
+        {
+            return GetFromConsul(name, defaultValue);
+        }
+
+        protected T GetFromConsul<T>(string name, T defaultValue)
         {
             name.ThrowIfNullOrEmpty(nameof(name));
 

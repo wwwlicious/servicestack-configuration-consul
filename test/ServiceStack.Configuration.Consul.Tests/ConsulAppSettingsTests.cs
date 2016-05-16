@@ -13,20 +13,9 @@ namespace ServiceStack.Configuration.Consul.Tests
     using Text;
     using Xunit;
 
-    public class ConsulAppSettingsTests
+    public class ConsulAppSettingsTests : AppSettingTestsBase
     {
         private readonly ConsulAppSettings appSettings;
-
-        // NOTE This is a sample result that just returns "testString"
-        private const string SampleString = "testString";
-        private const string ConsulResultString = "[{\"Key\":\"Key1212\",\"Value\":\"dGVzdFN0cmluZw==\"}]";
-
-        // NOTE This is a sample result 
-        private const string ConsulResultComplex = "[{\"Key\":\"Key1212\",\"Value\":\"e0FnZTo5OSxOYW1lOlRlc3QgUGVyc29ufQ==\"}]";
-
-        private const string DefaultUrl = "http://127.0.0.1:8500/v1/kv/";
-
-        private const string SampleKey = "Key1212";
 
         public ConsulAppSettingsTests()
         {
@@ -38,7 +27,8 @@ namespace ServiceStack.Configuration.Consul.Tests
         [InlineData("")]
         public void Ctor_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string uri)
         {
-            Assert.Throws<ArgumentNullException>(() => new ConsulAppSettings(uri));
+            Action action = () => new ConsulAppSettings(uri);
+            action.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
@@ -92,20 +82,21 @@ namespace ServiceStack.Configuration.Consul.Tests
         [InlineData("")]
         public void Exists_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
-            Assert.Throws<ArgumentNullException>(() => appSettings.Exists(name));
+            Action action = () => appSettings.Exists(name);
+            action.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
         public void Exists_CallsGetEndpoint()
         {
-            VerifyGetEndpoint(() => appSettings.Exists(SampleKey));
+            VerifyEndpoint(() => appSettings.Exists(SampleKey));
         }
 
         [Fact]
         public void Exists_CallsGetEndpoint_WithSlashes()
         {
             const string key = "foo/bar";
-            VerifyGetEndpoint(() => appSettings.Exists(key), key: key);
+            VerifyEndpoint(() => appSettings.Exists(key), key: key);
         }
 
         [Fact]
@@ -131,20 +122,21 @@ namespace ServiceStack.Configuration.Consul.Tests
         [InlineData("")]
         public void GetString_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
-            Assert.Throws<ArgumentNullException>(() => appSettings.GetString(name));
+            Action action = () => appSettings.GetString(name);
+            action.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
         public void GetString_CallsGetEndpoint()
         {
-            VerifyGetEndpoint(() => appSettings.GetString(SampleKey));
+            VerifyEndpoint(() => appSettings.GetString(SampleKey));
         }
 
         [Fact]
         public void GetString_CallsGetEndpoint_WithSlashes()
         {
             const string key = "foo/bar";
-            VerifyGetEndpoint(() => appSettings.GetString(key), key: key);
+            VerifyEndpoint(() => appSettings.GetString(key), key: key);
         }
 
         [Fact]
@@ -170,13 +162,14 @@ namespace ServiceStack.Configuration.Consul.Tests
         [InlineData("")]
         public void Get_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
-            Assert.Throws<ArgumentNullException>(() => appSettings.Get<object>(name));
+            Action action = () => appSettings.Get<object>(name);
+            action.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
         public void Get_CallsGetEndpoint()
         {
-            VerifyGetEndpoint(() => appSettings.Get<string>(SampleKey));
+            VerifyEndpoint(() => appSettings.Get<string>(SampleKey));
         }
 
         [Fact]
@@ -213,13 +206,14 @@ namespace ServiceStack.Configuration.Consul.Tests
         [InlineData("")]
         public void GetWithFallback_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
-            Assert.Throws<ArgumentNullException>(() => appSettings.Get(name, 22));
+            Action action = () => appSettings.Get(name, 22);
+            action.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
         public void GetWithFallback_CallsGetEndpoint()
         {
-            VerifyGetEndpoint(() => appSettings.Get(SampleKey, new Human()));
+            VerifyEndpoint(() => appSettings.Get(SampleKey, new Human()));
         }
 
         [Fact]
@@ -250,7 +244,8 @@ namespace ServiceStack.Configuration.Consul.Tests
         [InlineData("")]
         public void GetDictionary_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
-            Assert.Throws<ArgumentNullException>(() => appSettings.GetDictionary(name));
+            Action action = () => appSettings.GetDictionary(name);
+            action.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
@@ -259,7 +254,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             string dictResult;
             GenerateDictionaryResponse(out dictResult);
 
-            VerifyGetEndpoint(() => appSettings.GetDictionary(SampleKey), result: dictResult);
+            VerifyEndpoint(() => appSettings.GetDictionary(SampleKey), result: dictResult);
         }
 
         [Fact]
@@ -289,13 +284,14 @@ namespace ServiceStack.Configuration.Consul.Tests
         [InlineData("")]
         public void GetList_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
-            Assert.Throws<ArgumentNullException>(() => appSettings.GetList(name));
+            Action action = () => appSettings.GetList(name);
+            action.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
         public void GetList_CallsGetEndpoint()
         {
-            VerifyGetEndpoint(() => appSettings.GetList(SampleKey));
+            VerifyEndpoint(() => appSettings.GetList(SampleKey));
         }
 
         [Fact]
@@ -327,20 +323,21 @@ namespace ServiceStack.Configuration.Consul.Tests
         [InlineData("")]
         public void Set_ThrowsArgumentNullException_IfNullOrEmptyNamePassed(string name)
         {
-            Assert.Throws<ArgumentNullException>(() => appSettings.Set(name, 123));
+            Action action = () => appSettings.Set(name, 123);
+            action.ShouldThrow<ArgumentNullException>();
         }
 
         [Fact]
         public void Set_CallsSetEndpoint()
         {
-            VerifyGetEndpoint(() => appSettings.Set(SampleKey, 12345), "PUT", "true");
+            VerifyEndpoint(() => appSettings.Set(SampleKey, 12345), "PUT", "true");
         }
 
         [Fact]
         public void Set_CallsGetEndpoint_WithSlashes()
         {
             const string key = "foo/bar";
-            VerifyGetEndpoint(() => appSettings.Set(key, 22), "PUT", "true", key);
+            VerifyEndpoint(() => appSettings.Set(key, 22), "PUT", "true", key);
         }
 
         [Fact]
@@ -465,51 +462,6 @@ namespace ServiceStack.Configuration.Consul.Tests
 
                 webRequest.RequestUri.Should().Be(expected);
             }
-        }
-
-        private static void VerifyGetEndpoint(Action callEndpoint, string verb = "GET", string result = ConsulResultString, string key = SampleKey)
-        {
-            HttpWebRequest webRequest = null;
-
-            using (new HttpResultsFilter
-            {
-                StringResultFn = (request, s) =>
-                {
-                    webRequest = request;
-                    return result;
-                }
-            })
-            {
-                callEndpoint();
-
-                var expected = new Uri($"{DefaultUrl}{key}");
-
-                webRequest.RequestUri.Should().Be(expected);
-                webRequest.Method.Should().Be(verb);
-            }
-        }
-
-        private static HttpResultsFilter GetErrorHttpResultsFilter()
-        {
-            return new HttpResultsFilter { StringResultFn = (request, s) => { throw new WebException(); } };
-        }
-
-        private static HttpResultsFilter GetStandardHttpResultsFilter(string keysJson = ConsulResultString)
-        {
-            return new HttpResultsFilter { StringResult = keysJson };
-        }
-
-        private static Dictionary<string, string> GenerateDictionaryResponse(out string dictResult)
-        {
-            var dict = new Dictionary<string, string>
-            {
-                { "One", "ValOne" },
-                { "Two", "ValTwo" }
-            };
-
-            var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(TypeSerializer.SerializeToString(dict)));
-            dictResult = $"[{{\"Key\":\"Key1212\",\"Value\":\"{base64String}\"}}]";
-            return dict;
         }
     }
 }

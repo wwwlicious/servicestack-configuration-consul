@@ -10,6 +10,7 @@ namespace ServiceStack.Configuration.Consul.Tests
     using System.Net;
     using System.Text;
     using FluentAssertions;
+    using Testing;
     using Text;
     using Xunit;
 
@@ -19,7 +20,8 @@ namespace ServiceStack.Configuration.Consul.Tests
 
         public ConsulAppSettingsTests()
         {
-            appSettings = new ConsulAppSettings();
+            // note basic lookup strategy makes testing easier
+            appSettings = new ConsulAppSettings().WithLookupStrategy(LookupStrategy.BasicLookup);
         }
 
         [Theory]
@@ -214,6 +216,34 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void GetWithFallback_CallsGetEndpoint()
         {
             VerifyEndpoint(() => appSettings.Get(SampleKey, new Human()));
+        }
+
+        [Fact]
+        public void GetWithFallback_CallsGetEndpointMultiple_IfUseBasicKeyLookupTrue()
+        {
+            var serviceName = "sylvia plath";
+            if (ServiceStackHost.Instance == null)
+            {
+                var appHost = new BasicAppHost { TestMode = true, ServiceName = serviceName };
+                appHost.Init();
+            }
+
+            appSettings.WithLookupStrategy(LookupStrategy.Fallthrough);
+
+            var calls = new List<HttpWebRequest>();
+            using (new HttpResultsFilter
+            {
+                StringResultFn = (request, s) =>
+                {
+                    calls.Add(request);
+                    return null;
+                }
+            })
+            {
+                appSettings.Get(SampleKey, new Human());
+
+                calls.Count.Should().Be(3);
+            }
         }
 
         [Fact]
@@ -463,5 +493,11 @@ namespace ServiceStack.Configuration.Consul.Tests
                 webRequest.RequestUri.Should().Be(expected);
             }
         }
+
+        [Fact]
+        public void WithUseBasicKeyLookup_ReturnsConsulAppSettings()
+            =>
+                appSettings.WithLookupStrategy(LookupStrategy.Fallthrough).Should()
+                           .BeOfType<ConsulAppSettings>();
     }
 }

@@ -21,6 +21,7 @@ namespace ServiceStack.Configuration.Consul
         private readonly string keyValueEndpoint;
         private readonly string consulUri;
         private readonly ILog log = LogManager.GetLogger(typeof(ConsulAppSettings));
+        private LookupStrategy lookupStrategy = LookupStrategy.Fallthrough;
 
         public ConsulAppSettings(string consulUri)
         {
@@ -125,14 +126,26 @@ namespace ServiceStack.Configuration.Consul
             return GetFromConsul(name, defaultValue);
         }
 
+        /// <summary>
+        /// Sets lookup strategy to use. Default LookupStrategy.Fallthrough
+        /// </summary>
+        /// <param name="lookupStrategy">The lookup strategy to use</param>
+        /// <returns>Current ConsulAppSettings instance</returns>
+        public ConsulAppSettings WithLookupStrategy(LookupStrategy lookupStrategy)
+        {
+            this.lookupStrategy = lookupStrategy;
+            return this;
+        }
+
         protected T GetFromConsul<T>(string name, T defaultValue)
         {
             name.ThrowIfNullOrEmpty(nameof(name));
 
             try
             {
-                var keyValues = GetKeyValue(name);
-                var value = keyValues.GetValue<T>();
+                var value = lookupStrategy == LookupStrategy.BasicLookup
+                                ? GetValue<T>(name)
+                                : KeyLookupUtilities.GetMostSpecificValue(name, GetValue<T>);
 
                 if (log.IsDebugEnabled)
                 {
@@ -158,10 +171,25 @@ namespace ServiceStack.Configuration.Consul
             }
         }
 
+        private T GetValue<T>(string name)
+        {
+            var keyValues = GetKeyValue(name);
+
+            if (keyValues == null)
+                return default(T);
+            
+            var value = keyValues.GetValue<T>();
+            return value;
+        }
+
         private KeyValue GetKeyValue(string name)
         {
             var keyVal = KeyValue.Create(name);
             var jsonFromUrl = consulUri.CombineWith(keyVal.ToGetUrl()).GetJsonFromUrl();
+
+            if (jsonFromUrl == null)
+                return null;
+
             var keyValues = jsonFromUrl.FromJson<List<KeyValue>>();
             var value = keyValues.First();
             return value;

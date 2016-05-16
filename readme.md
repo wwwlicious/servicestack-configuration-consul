@@ -24,17 +24,19 @@ Install the package [https://www.nuget.org/packages/ServiceStack.Configuration.C
 PM> Install-Package ServiceStack.Configuration.Consul
 ```
 
-The `ConsulAppSetting` is setup like any other implementation of AppSettings. To set `ConsulAppSettings` as the default `IAppSettings` implementation for an AppHost add the following line while configuring an AppHost:
+There are 2 implementations of `IAppSettings`: `ConsulAppSetting` and `CachedConsulAppSetting`. These are setup like any other implementation of AppSettings. To set either as the default `IAppSettings` implementation for an AppHost add the following line while configuring an AppHost:
 
 ```csharp
 public override void Configure(Container container)
 {
     // ..standard setup... 
 	
+	AppSettings = new CachedConsulAppSettings();
+	// OR
     AppSettings = new ConsulAppSettings();
 }
 ```
-`ConsulAppSettings` also works as part of a cascading configuration setup using `MultiAppSettings`. The following will check Consul first, then local appSetting (app.config/web.config) before finally checking Environment variables.
+Both `CachedConsulAppSettings` and `ConsulAppSettings` work as part of a cascading configuration setup using `MultiAppSettings`. The following will check Consul first, then local appSetting (app.config/web.config) before finally checking Environment variables.
 
 ```csharp
 AppSettings = new MultiAppSettings(
@@ -54,6 +56,24 @@ public class MyService : Service
 }
 ```
 
+## Overview
+The recommendation is to use `CachedConsulAppSetting` as this provides some protection against spikes in traffic by caching responses for a short period of time.
+
+### `ConsulAppSetting`
+`ConsulAppSetting` is a basic implementation of `IAppSettings` that makes calls directly to Consul K/V store on every request. The URL of the consul instance to use can be specified as an optional constructor argument.
+
+### `CachedConsulAppSetting`
+`CachedConsulAppSetting` is a thin wrapper around `ConsulAppSetting` that caches all fetched requests for 1500ms (by default. The time, in ms, can be specified as a constructor argument). If a repeate call is made for same key within the caching time the result will be served from the cache rather than the K/V store.
+
+Calls to Consul are made via a loopback address so will be quick, however caching results avoids the potential to overload Consul by making too many requests in a short period of time.
+
+The default `ICacheClient` implementation used is `MemoryCacheClient`. A different implementation if `ICacheClient` can be specified using the `WithCacheClient(ICacheClient cacheClient)` method, however the recommendation is to use a local memory cache. The goal of the `CachedConsulAppSetting` is to avoid many repeated loopback http requests in a small period of time so there is little to gain in replacing these calls with many requests to a remote caching solution.
+
+```charp
+// Cache results for 5000ms in new instance of MyCacheClient.
+AppSettings = new CachedConsulAppSettings(5000).WithCacheClient(new MyCacheClient());
+```
+
 ## Demo
 ServiceStack.Configuration.Consul.Demo is a console app that starts a self hosted application that runs as [http://127.0.0.1:8093/](http://127.0.0.1:8093/). This contains a simple service that takes a GET and PUT request:
 
@@ -65,6 +85,8 @@ The "Postman Samples" folder contains a sample [Postman](https://www.getpostman.
 
 ## Why?
 When implementing distributed systems it makes life easier to decouple configuration from code and manage it as an external concern. This allows a central place for all shared configuration values which can then be access by a number of systems. It then becomes faster and easier to make configuration changes; an update is made once and can be used everywhere.
+
+By managing configuration as an external concern the way in which it is consumed needs to slightly change. Rather than reading in all AppSettings on startup and caching them we now need to get AppSettings on demand, every time they are required as the value may have been updated since it was last called.
 
 For example, if a range of systems need to use the same connection string this can be updated in the central Consul K/V store and is then available to all applications without needing to make any changes to them (e.g. redeploy or bouncing appPools etc):
 

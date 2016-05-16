@@ -65,6 +65,8 @@
     <Compile Include="CachedConsulAppSettings.cs" />
     <Compile Include="ConsulAppSettings.cs" />
     <Compile Include="DTO\KeyValue.cs" />
+    <Compile Include="KeyLookupUtilities.cs" />
+    <Compile Include="LookupStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

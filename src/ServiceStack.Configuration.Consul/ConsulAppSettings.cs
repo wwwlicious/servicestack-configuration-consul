@@ -8,7 +8,6 @@ namespace ServiceStack.Configuration.Consul
     using System.Collections.Generic;
     using System.Configuration;
     using System.Linq;
-    using System.Net;
     using Configuration;
     using DTO;
     using Logging;
@@ -129,61 +128,50 @@ namespace ServiceStack.Configuration.Consul
         {
             name.ThrowIfNullOrEmpty(nameof(name));
 
-            var result = KeyLookupUtilities.GetMostSpecificValue(name, GetValue<T>);
+            var result = GetValue<T>(name);
 
-            if (log.IsDebugEnabled)
-            {
-                if (result.IsSuccess)
-                    log.Debug($"Got config value {result} for key {name}");
-                else
-                    log.Debug($"Could not get value for key {name}");
-            }
+            log.Debug(result.IsSuccess
+                          ? $"Got config value {result} for key {name}"
+                          : $"Could not get value for key {name}");
 
             return result.IsSuccess ? result : Result<T>.Fail(defaultValue);
         }
 
         private Result<T> GetValue<T>(string name)
         {
-            var keyValueResult = GetKeyValue(name);
-
-            if (!keyValueResult.IsSuccess)
-                return Result<T>.Fail();
-
+            var key = $"ss/{name}";
             try
             {
-                var value = keyValueResult.Value.GetValue<T>();
-                return Result<T>.Success(value);
+                // Get a KeyValue object 
+                var keyVal = KeyValue.Create(key);
+
+                // Get the URL with
+                var url = consulUri.CombineWith(keyVal.ToGetUrl()) + "?recurse";
+
+                log.Debug($"Calling {url} to get values");
+
+                var task = url.SendStringToUrlAsync("GET", accept: "application/json");
+
+                // Add timeout??
+                task.Wait();
+
+                // Make a single call with ?recurse
+                var keyValues = task.Result.FromJson<List<KeyValue>>();
+
+                if (keyValues.Count == 0)
+                    return Result<T>.Fail();
+
+                var value = keyValues.Last();
+                return Result<T>.Success(value.GetValue<T>());
             }
-            catch (NotSupportedException ex)
+            catch (AggregateException ex)
             {
-                log.Error($"Unable to deserialise config value with key {name}", ex);
+                foreach (var x in ex.Flatten().InnerExceptions)
+                {
+                    log.Error($"Error getting config value with key {key}", ex);
+                }
+
                 return Result<T>.Fail();
-            }
-        }
-
-        private Result<KeyValue> GetKeyValue(string name)
-        {
-            try
-            {
-                var keyVal = KeyValue.Create(name);
-                var jsonFromUrl = consulUri.CombineWith(keyVal.ToGetUrl()).GetJsonFromUrl();
-
-                if (jsonFromUrl == null)
-                    return null;
-
-                var keyValues = jsonFromUrl.FromJson<List<KeyValue>>();
-                var value = keyValues.First();
-                return Result<KeyValue>.Success(value);
-            }
-            catch (WebException ex)
-            {
-                log.Error($"Unable to find config value with key {name}", ex);
-                return Result<KeyValue>.Fail();
-            }
-            catch (Exception ex)
-            {
-                log.Error($"Error getting string value for config key {name}", ex);
-                return Result<KeyValue>.Fail();
             }
         }
     }

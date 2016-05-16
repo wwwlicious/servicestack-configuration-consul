@@ -94,7 +94,6 @@
     <Compile Include="ConsulAppSettingsTests.cs" />
     <Compile Include="Human.cs" />
     <Compile Include="DTO\KeyValueTests.cs" />
-    <Compile Include="KeyLookupUtilitiesTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResultTests.cs" />
   </ItemGroup>

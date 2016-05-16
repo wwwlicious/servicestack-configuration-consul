@@ -31,7 +31,7 @@ namespace ServiceStack.Configuration.Consul
         /// and local consul agent (http://127.0.0.1:8500)
         /// </summary>
         /// <param name="cacheTtl">Cache time to live (ms)</param>
-        public CachedConsulAppSettings(int cacheTtl = DefaultTtl)
+        public CachedConsulAppSettings(int cacheTtl = DefaultTtl) : base()
         {
             Init(cacheTtl);
         }
@@ -40,7 +40,7 @@ namespace ServiceStack.Configuration.Consul
         /// Instantiates new CachedConsulAppSettings specified timeout and consul Uri
         /// </summary>
         /// <param name="consulUri">Uri of consul agent to use</param>
-        /// /// <param name="cacheTtl">Cache time to live (ms)</param>
+        /// <param name="cacheTtl">Cache time to live (ms)</param>
         public CachedConsulAppSettings(string consulUri, int cacheTtl = DefaultTtl) : base(consulUri)
         {
             Init(cacheTtl);
@@ -102,12 +102,12 @@ namespace ServiceStack.Configuration.Consul
             if (value != null)
                 return value;
 
-            value = GetFromConsul(name, defaultValue);
+            var result = GetFromConsul(name, defaultValue);
 
-            if (value != null)
-                CacheClient.Add(name, value, ttl);
+            if (result.IsSuccess)
+                CacheClient.Add(name, result.Value, ttl);
 
-            return value;
+            return result.Value;
         }
 
         public override IDictionary<string, string> GetDictionary(string key)

@@ -5,26 +5,17 @@
 namespace ServiceStack.Configuration.Consul.Tests
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using FluentAssertions;
     using Testing;
     using Xunit;
 
-    [Collection("KeyFormatterTests")]
+    [Collection("KeyLookupUtilitiesTests")]
     public class KeyLookupUtilitiesTests : IDisposable
     {
         private ServiceStackHost appHost;
         private const string Key = "findMe";
         private const string ServiceName = "testService";
-
-        [Fact]
-        public void GetPossibleKeys_NullAppHost_ReturnsDefault()
-        {
-            var values = KeyLookupUtilities.GetPossibleKeys(Key);
-            values.Count().Should().Be(1);
-            values.First().Should().Be($"ss/{Key}");
-        }
 
         [Fact]
         public void GetPossibleKeys_ValuesInCorrectOrder()
@@ -38,45 +29,20 @@ namespace ServiceStack.Configuration.Consul.Tests
         }
 
         [Fact]
-        public void GetNonDefault_CallsDelegate_WithKeys()
-        {
-            var callList = new List<string>(2);
-
-            var keys = new[] { Key, Key + Key };
-            KeyLookupUtilities.GetNonDefault(keys, str =>
-                        {
-                            callList.Add(str);
-                            return str;
-                        }).ToList();
-
-            keys[0].Should().Be(Key);
-            keys[1].Should().Be(Key + Key);
-        }
-
-        [Fact]
-        public void GetNonDefault_ReturnsNonDefault()
-        {
-            var keys = new[] { Key, null, Key + Key };
-            var results = KeyLookupUtilities.GetNonDefault(keys, str => str).ToList();
-
-            results.Count.Should().Be(2);
-            results[0].Should().Be(Key);
-            results[1].Should().Be(Key + Key);
-        }
-
-        [Fact]
-        public void GetValue_ReturnsFirstNonDefault()
+        public void GetValue_ReturnsFirstSuccessful()
         {
             Init();
             int count = 0;
             var result = KeyLookupUtilities.GetMostSpecificValue(Key, str =>
                         {
                             count++;
-                            return str == $"ss/{ServiceName}/{Key}" ? "nonDefault" : null;
+                            return str == $"ss/{ServiceName}/{Key}"
+                                       ? Result<string>.Success("nonDefault")
+                                       : Result<string>.Fail();
                         });
 
             count.Should().Be(2);
-            result.Should().Be("nonDefault");
+            result.Value.Should().Be("nonDefault");
         }
 
         public void Dispose() => appHost?.Dispose();
@@ -87,6 +53,38 @@ namespace ServiceStack.Configuration.Consul.Tests
             {
                 appHost = new BasicAppHost { TestMode = true, ServiceName = ServiceName };
                 appHost.Init();
+            }
+        }
+    }
+
+    [Collection("KeyLookupUtilitiesTests")]
+    public class KeyLookupUtilitiesHostlessTests : IDisposable
+    {
+        private readonly AppDomain noHost;
+
+        public KeyLookupUtilitiesHostlessTests()
+        {
+            noHost = AppDomain.CreateDomain("NoAppHost", AppDomain.CurrentDomain.Evidence,
+                AppDomain.CurrentDomain.SetupInformation);
+        }
+
+        [Fact]
+        public void GetPossibleKeys_NullAppHost_ReturnsDefault()
+        {
+            const string key = "findMe";
+            noHost.DoCallBack(() =>
+            {
+                var values = KeyLookupUtilities.GetPossibleKeys(key);
+                values.Count().Should().Be(1);
+                values.First().Should().Be($"ss/{key}");
+            });
+        }
+
+        public void Dispose()
+        {
+            if (noHost != null)
+            {
+                AppDomain.Unload(noHost);
             }
         }
     }

@@ -21,12 +21,11 @@ namespace ServiceStack.Configuration.Consul
         private readonly string keyValueEndpoint;
         private readonly string consulUri;
         private readonly ILog log = LogManager.GetLogger(typeof(ConsulAppSettings));
-        private LookupStrategy lookupStrategy = LookupStrategy.Fallthrough;
 
         public ConsulAppSettings(string consulUri)
         {
             consulUri.ThrowIfNullOrEmpty(nameof(consulUri));
-            
+
             this.consulUri = consulUri;
             keyValueEndpoint = consulUri.CombineWith("/v1/kv/");
         }
@@ -72,7 +71,7 @@ namespace ServiceStack.Configuration.Consul
         public virtual bool Exists(string key)
         {
             var result = GetFromConsul<string>(key, null);
-            return result != null;
+            return result.IsSuccess;
         }
 
         public virtual void Set<T>(string key, T value)
@@ -103,96 +102,89 @@ namespace ServiceStack.Configuration.Consul
 
         public virtual string GetString(string name)
         {
-            return GetFromConsul<string>(name, null);
+            return GetFromConsul<string>(name, null).Value;
         }
 
         public virtual IList<string> GetList(string key)
         {
-            return GetFromConsul<List<string>>(key, null);
+            return GetFromConsul<List<string>>(key, null).Value;
         }
 
         public virtual IDictionary<string, string> GetDictionary(string key)
         {
-            return GetFromConsul<Dictionary<string, string>>(key, null);
+            return GetFromConsul<Dictionary<string, string>>(key, null).Value;
         }
 
         public virtual T Get<T>(string name)
         {
-            return GetFromConsul(name, default(T));
+            return GetFromConsul(name, default(T)).Value;
         }
 
         public virtual T Get<T>(string name, T defaultValue)
         {
-            return GetFromConsul(name, defaultValue);
+            return GetFromConsul(name, defaultValue).Value;
         }
 
-        /// <summary>
-        /// Sets lookup strategy to use. Default LookupStrategy.Fallthrough
-        /// </summary>
-        /// <param name="lookupStrategy">The lookup strategy to use</param>
-        /// <returns>Current ConsulAppSettings instance</returns>
-        public ConsulAppSettings WithLookupStrategy(LookupStrategy lookupStrategy)
-        {
-            this.lookupStrategy = lookupStrategy;
-            return this;
-        }
-
-        protected T GetFromConsul<T>(string name, T defaultValue)
+        protected Result<T> GetFromConsul<T>(string name, T defaultValue)
         {
             name.ThrowIfNullOrEmpty(nameof(name));
 
+            var result = KeyLookupUtilities.GetMostSpecificValue(name, GetValue<T>);
+
+            if (log.IsDebugEnabled)
+            {
+                if (result.IsSuccess)
+                    log.Debug($"Got config value {result} for key {name}");
+                else
+                    log.Debug($"Could not get value for key {name}");
+            }
+
+            return result.IsSuccess ? result : Result<T>.Fail(defaultValue);
+        }
+
+        private Result<T> GetValue<T>(string name)
+        {
+            var keyValueResult = GetKeyValue(name);
+
+            if (!keyValueResult.IsSuccess)
+                return Result<T>.Fail();
+
             try
             {
-                var value = lookupStrategy == LookupStrategy.BasicLookup
-                                ? GetValue<T>(name)
-                                : KeyLookupUtilities.GetMostSpecificValue(name, GetValue<T>);
-
-                if (log.IsDebugEnabled)
-                {
-                    log.Debug($"Got config value {value} for key {name}");
-                }
-
-                return value;
-            }
-            catch (WebException ex) when (ex.ToStatusCode() == 404)
-            {
-                log.Error($"Unable to find config value with key {name}", ex);
-                return defaultValue;
+                var value = keyValueResult.Value.GetValue<T>();
+                return Result<T>.Success(value);
             }
             catch (NotSupportedException ex)
             {
                 log.Error($"Unable to deserialise config value with key {name}", ex);
-                return defaultValue;
+                return Result<T>.Fail();
+            }
+        }
+
+        private Result<KeyValue> GetKeyValue(string name)
+        {
+            try
+            {
+                var keyVal = KeyValue.Create(name);
+                var jsonFromUrl = consulUri.CombineWith(keyVal.ToGetUrl()).GetJsonFromUrl();
+
+                if (jsonFromUrl == null)
+                    return null;
+
+                var keyValues = jsonFromUrl.FromJson<List<KeyValue>>();
+                var value = keyValues.First();
+                return Result<KeyValue>.Success(value);
+            }
+            catch (WebException ex)
+            {
+                log.Error($"Unable to find config value with key {name}", ex);
+                return Result<KeyValue>.Fail();
             }
             catch (Exception ex)
             {
                 log.Error($"Error getting string value for config key {name}", ex);
-                return defaultValue;
+                return Result<KeyValue>.Fail();
             }
-        }
-
-        private T GetValue<T>(string name)
-        {
-            var keyValues = GetKeyValue(name);
-
-            if (keyValues == null)
-                return default(T);
-            
-            var value = keyValues.GetValue<T>();
-            return value;
-        }
-
-        private KeyValue GetKeyValue(string name)
-        {
-            var keyVal = KeyValue.Create(name);
-            var jsonFromUrl = consulUri.CombineWith(keyVal.ToGetUrl()).GetJsonFromUrl();
-
-            if (jsonFromUrl == null)
-                return null;
-
-            var keyValues = jsonFromUrl.FromJson<List<KeyValue>>();
-            var value = keyValues.First();
-            return value;
         }
     }
 }

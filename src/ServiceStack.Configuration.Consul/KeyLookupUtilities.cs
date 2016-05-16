@@ -6,7 +6,6 @@ namespace ServiceStack.Configuration.Consul
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
 
     public class KeyLookupUtilities
     {
@@ -42,17 +41,6 @@ namespace ServiceStack.Configuration.Consul
             };
         }
 
-        public static IEnumerable<T> GetNonDefault<T>(IEnumerable<string> keys, Func<string, T> getValue)
-        {
-            foreach (var key in keys)
-            {
-                var value = getValue(key);
-
-                if (!Equals(value, default(T)))
-                    yield return value;
-            }
-        }
-
         /// <summary>
         /// Looks up the most specific value for the given config key 
         /// (instance specific - service specific - default)
@@ -61,7 +49,17 @@ namespace ServiceStack.Configuration.Consul
         /// <param name="key">The base key to lookup</param>
         /// <param name="getValue">Function to call to get values</param>
         /// <returns>First non-default value for key</returns>
-        public static T GetMostSpecificValue<T>(string key, Func<string, T> getValue)
-            => GetNonDefault(GetPossibleKeys(key), getValue).FirstOrDefault();
+        public static Result<T> GetMostSpecificValue<T>(string key, Func<string, Result<T>> getValue)
+        {
+            foreach (var currentKey in GetPossibleKeys(key))
+            {
+                var value = getValue(currentKey);
+
+                if (value.IsSuccess)
+                    return value;
+            }
+
+            return Result<T>.Fail();
+        }
     }
 }

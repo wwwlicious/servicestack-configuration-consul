@@ -20,8 +20,7 @@ namespace ServiceStack.Configuration.Consul.Tests
 
         public ConsulAppSettingsTests()
         {
-            // note basic lookup strategy makes testing easier
-            appSettings = new ConsulAppSettings().WithLookupStrategy(LookupStrategy.BasicLookup);
+            appSettings = new ConsulAppSettings();
         }
 
         [Theory]
@@ -228,7 +227,7 @@ namespace ServiceStack.Configuration.Consul.Tests
                 appHost.Init();
             }
 
-            appSettings.WithLookupStrategy(LookupStrategy.Fallthrough);
+            var settings = new ConsulAppSettings();
 
             var calls = new List<HttpWebRequest>();
             using (new HttpResultsFilter
@@ -240,7 +239,7 @@ namespace ServiceStack.Configuration.Consul.Tests
                 }
             })
             {
-                appSettings.Get(SampleKey, new Human());
+                settings.Get(SampleKey, new Human());
 
                 calls.Count.Should().Be(3);
             }
@@ -493,11 +492,5 @@ namespace ServiceStack.Configuration.Consul.Tests
                 webRequest.RequestUri.Should().Be(expected);
             }
         }
-
-        [Fact]
-        public void WithUseBasicKeyLookup_ReturnsConsulAppSettings()
-            =>
-                appSettings.WithLookupStrategy(LookupStrategy.Fallthrough).Should()
-                           .BeOfType<ConsulAppSettings>();
     }
 }

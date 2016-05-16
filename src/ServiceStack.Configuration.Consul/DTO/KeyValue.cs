@@ -10,7 +10,7 @@ namespace ServiceStack.Configuration.Consul.DTO
 
     [Route("/v1/kv/{Key}", "GET,PUT")]
     [DataContract]
-    public class KeyValue
+    public class KeyValue : IUrlFilter
     {
         [DataMember]
         public string Key { get; set; }
@@ -39,5 +39,11 @@ namespace ServiceStack.Configuration.Consul.DTO
                 RawValue = Encoding.UTF8.GetBytes(TypeSerializer.SerializeToString(value))
             };
         }
+
+        public string ToUrl(string absoluteUrl)
+        {
+            const string decodedSlash = "%2F";
+            return Key.Contains("/") ? absoluteUrl.Replace(decodedSlash, "/") : absoluteUrl;
+        } 
     }
 }

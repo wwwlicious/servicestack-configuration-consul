@@ -102,6 +102,13 @@ namespace ServiceStack.Configuration.Consul.Tests
         }
 
         [Fact]
+        public void Exists_CallsGetEndpoint_WithSlashes()
+        {
+            const string key = "foo/bar";
+            VerifyGetEndpoint(() => appSettings.Exists(key), key: key);
+        }
+
+        [Fact]
         public void Exists_ReturnsTrue_IfKeyFound()
         {
             using (GetStandardHttpResultsFilter())
@@ -131,6 +138,13 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void GetString_CallsGetEndpoint()
         {
             VerifyGetEndpoint(() => appSettings.GetString(SampleKey));
+        }
+
+        [Fact]
+        public void GetString_CallsGetEndpoint_WithSlashes()
+        {
+            const string key = "foo/bar";
+            VerifyGetEndpoint(() => appSettings.GetString(key), key: key);
         }
 
         [Fact]
@@ -323,6 +337,13 @@ namespace ServiceStack.Configuration.Consul.Tests
         }
 
         [Fact]
+        public void Set_CallsGetEndpoint_WithSlashes()
+        {
+            const string key = "foo/bar";
+            VerifyGetEndpoint(() => appSettings.Set(key, 22), "PUT", "true", key);
+        }
+
+        [Fact]
         public void Set_DoesNotThrow_IfAdded()
         {
             HttpWebRequest webRequest = null;
@@ -446,7 +467,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             }
         }
 
-        private static void VerifyGetEndpoint(Action callEndpoint, string verb = "GET", string result = ConsulResultString)
+        private static void VerifyGetEndpoint(Action callEndpoint, string verb = "GET", string result = ConsulResultString, string key = SampleKey)
         {
             HttpWebRequest webRequest = null;
 
@@ -461,7 +482,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             {
                 callEndpoint();
 
-                var expected = new Uri($"{DefaultUrl}{SampleKey}");
+                var expected = new Uri($"{DefaultUrl}{key}");
 
                 webRequest.RequestUri.Should().Be(expected);
                 webRequest.Method.Should().Be(verb);

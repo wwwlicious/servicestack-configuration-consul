@@ -106,5 +106,26 @@ namespace ServiceStack.Configuration.Consul.Tests.DTO
 
             value.Should().BeEmpty();
         }
+
+        [Fact]
+        public void ToUrl_ReturnsAbsoluteUrl_IfNoSlashes()
+        {
+            const string url = "/v1/kv/mykey";
+
+            var key = new KeyValue { Key = "mykey" };
+
+            key.ToUrl(url).Should().Be(url);
+        }
+
+        [Fact]
+        public void ToUrl_ReplacesEncodedSlashes_InKey()
+        {
+            const string url = "/v1/kv/mykey%2Fsubkey";
+            const string expected = "/v1/kv/mykey/subkey";
+
+            var key = new KeyValue { Key = "mykey/subkey" };
+
+            key.ToUrl(url).Should().Be(expected);
+        }
     }
 }

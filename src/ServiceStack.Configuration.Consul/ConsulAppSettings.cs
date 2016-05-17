@@ -8,6 +8,7 @@ namespace ServiceStack.Configuration.Consul
     using System.Collections.Generic;
     using System.Configuration;
     using System.Linq;
+    using System.Runtime.Serialization;
     using Configuration;
     using DTO;
     using Logging;
@@ -38,6 +39,7 @@ namespace ServiceStack.Configuration.Consul
 
         public virtual Dictionary<string, string> GetAll()
         {
+            // Get all is a call with a null key as all keys live under known subfolder
             var values = GetValues(null);
 
             // TODO - limit results
@@ -139,7 +141,20 @@ namespace ServiceStack.Configuration.Consul
             if (resultValues.IsSuccess)
             {
                 var kv = KeyUtilities.GetMostSpecificMatch(resultValues.Value, name);
-                return Result<T>.Success(kv.GetValue<T>());
+                try
+                {
+                    return Result<T>.Success(kv.GetValue<T>());
+                }
+                catch (NotSupportedException ex)
+                {
+                    log.Error($"Unable to deserialise config value with key {name}", ex);
+                    return Result<T>.Fail();
+                }
+                catch (SerializationException ex)
+                {
+                    log.Error($"Unable to deserialise config value with key {name}", ex);
+                    return Result<T>.Fail();
+                }
             }
 
             return Result<T>.Fail();
@@ -158,23 +173,17 @@ namespace ServiceStack.Configuration.Consul
 
                 log.Debug($"Calling {url} to get values");
 
-                var task = url.SendStringToUrlAsync("GET", accept: "application/json");
-
-                // TODO Add timeout?
-                task.Wait();
+                // TODO - make async
+                var result = url.SendStringToUrl("GET", accept: "application/json");
 
                 // Consul KV always returns a collection
-                var keyValues = task.Result.FromJson<List<KeyValue>>();
+                var keyValues = result.FromJson<List<KeyValue>>();
 
                 return keyValues.Count == 0 ? Result<List<KeyValue>>.Fail() : Result<List<KeyValue>>.Success(keyValues);
             }
-            catch (AggregateException ex)
+            catch (Exception ex)
             {
-                foreach (var x in ex.Flatten().InnerExceptions)
-                {
-                    log.Error($"Error getting config value with key {key}", x);
-                }
-
+                log.Error($"Error getting config value with key {key}", ex);
                 return Result<List<KeyValue>>.Fail();
             }
         }

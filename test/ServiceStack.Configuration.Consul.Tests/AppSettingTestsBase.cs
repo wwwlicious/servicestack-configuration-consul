@@ -11,16 +11,20 @@ namespace ServiceStack.Configuration.Consul.Tests
     {
         // NOTE This is a sample result that just returns "testString"
         protected const string SampleString = "testString";
-        protected const string ConsulResultString = "[{\"Key\":\"Key1212\",\"Value\":\"dGVzdFN0cmluZw==\"}]";
+        protected const string ConsulResultString = "[{\"Key\":\"ss/Key1212\",\"Value\":\"dGVzdFN0cmluZw==\"}]";
+
+        protected const string ConsulResultStringSlashKey = "[{\"Key\":\"ss/foo/bar\",\"Value\":\"dGVzdFN0cmluZw==\"}]";
 
         // NOTE This is a sample result 
-        protected const string ConsulResultComplex = "[{\"Key\":\"Key1212\",\"Value\":\"e0FnZTo5OSxOYW1lOlRlc3QgUGVyc29ufQ==\"}]";
+        protected const string ConsulResultComplex = "[{\"Key\":\"ss/Key1212\",\"Value\":\"e0FnZTo5OSxOYW1lOlRlc3QgUGVyc29ufQ==\"}]";
 
         protected const string DefaultUrl = "http://127.0.0.1:8500/v1/kv/";
 
         protected const string SampleKey = "Key1212";
 
-        protected static void VerifyEndpoint(Action callEndpoint, string verb = "GET", string result = ConsulResultString, string key = ConsulAppSettingsTests.SampleKey)
+        protected const string SlashKey = "foo/bar";
+
+        protected static void VerifyEndpoint(Action callEndpoint, string verb = "GET", string result = ConsulResultString, string key = SampleKey)
         {
             HttpWebRequest webRequest = null;
 
@@ -35,8 +39,11 @@ namespace ServiceStack.Configuration.Consul.Tests
             {
                 callEndpoint();
 
-                var expected = new Uri($"{DefaultUrl}{key}");
+                var expectedString = $"{DefaultUrl}ss/{key}";
+                if (verb == "GET")
+                    expectedString += "?recurse";
 
+                var expected = new Uri(expectedString);
                 webRequest.RequestUri.Should().Be(expected);
                 webRequest.Method.Should().Be(verb);
             }
@@ -61,7 +68,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             };
 
             var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(TypeSerializer.SerializeToString(dict)));
-            dictResult = $"[{{\"Key\":\"Key1212\",\"Value\":\"{base64String}\"}}]";
+            dictResult = $"[{{\"Key\":\"ss/Key1212\",\"Value\":\"{base64String}\"}}]";
             return dict;
         }
     }

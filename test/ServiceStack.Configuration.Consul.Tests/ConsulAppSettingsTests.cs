@@ -10,7 +10,6 @@ namespace ServiceStack.Configuration.Consul.Tests
     using System.Net;
     using System.Text;
     using FluentAssertions;
-    using Testing;
     using Text;
     using Xunit;
 
@@ -96,8 +95,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         [Fact]
         public void Exists_CallsGetEndpoint_WithSlashes()
         {
-            const string key = "foo/bar";
-            VerifyEndpoint(() => appSettings.Exists(key), key: key);
+            VerifyEndpoint(() => appSettings.Exists(SlashKey), key: SlashKey, result: ConsulResultStringSlashKey);
         }
 
         [Fact]
@@ -136,8 +134,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         [Fact]
         public void GetString_CallsGetEndpoint_WithSlashes()
         {
-            const string key = "foo/bar";
-            VerifyEndpoint(() => appSettings.GetString(key), key: key);
+            VerifyEndpoint(() => appSettings.GetString(SlashKey), key: SlashKey, result: ConsulResultStringSlashKey);
         }
 
         [Fact]
@@ -216,35 +213,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         {
             VerifyEndpoint(() => appSettings.Get(SampleKey, new Human()));
         }
-
-        [Fact]
-        public void GetWithFallback_CallsGetEndpointMultiple_IfUseBasicKeyLookupTrue()
-        {
-            var serviceName = "sylvia plath";
-            if (ServiceStackHost.Instance == null)
-            {
-                var appHost = new BasicAppHost { TestMode = true, ServiceName = serviceName };
-                appHost.Init();
-            }
-
-            var settings = new ConsulAppSettings();
-
-            var calls = new List<HttpWebRequest>();
-            using (new HttpResultsFilter
-            {
-                StringResultFn = (request, s) =>
-                {
-                    calls.Add(request);
-                    return null;
-                }
-            })
-            {
-                settings.Get(SampleKey, new Human());
-
-                calls.Count.Should().Be(3);
-            }
-        }
-
+        
         [Fact]
         public void GetWithFallback_Returns_IfFound()
         {
@@ -329,7 +298,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             var list = new List<string> { "Rolles", "Rickson", "Royler", "Royce" };
 
             var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(TypeSerializer.SerializeToString(list)));
-            string dictResult = $"[{{\"Key\":\"Key1212\",\"Value\":\"{base64String}\"}}]";
+            string dictResult = $"[{{\"Key\":\"ss/Key1212\",\"Value\":\"{base64String}\"}}]";
 
             using (GetStandardHttpResultsFilter(dictResult))
             {
@@ -359,14 +328,13 @@ namespace ServiceStack.Configuration.Consul.Tests
         [Fact]
         public void Set_CallsSetEndpoint()
         {
-            VerifyEndpoint(() => appSettings.Set(SampleKey, 12345), "PUT", "true");
+            VerifyEndpoint(() => appSettings.Set("ss/" + SampleKey, 12345), "PUT", "true");
         }
 
         [Fact]
         public void Set_CallsGetEndpoint_WithSlashes()
         {
-            const string key = "foo/bar";
-            VerifyEndpoint(() => appSettings.Set(key, 22), "PUT", "true", key);
+            VerifyEndpoint(() => appSettings.Set("ss/" + SlashKey, 22), "PUT", "true", SlashKey);
         }
 
         [Fact]
@@ -397,76 +365,9 @@ namespace ServiceStack.Configuration.Consul.Tests
         }
 
         [Fact]
-        public void GetAll_GetsAllKeys()
+        public void GetAll_CallsCorrectEndpoint()
         {
-            Uri firstUri = null;
-
-            using (new HttpResultsFilter
-            {
-                StringResultFn = (request, s) =>
-                {
-                    if (firstUri == null)
-                        firstUri = request.RequestUri;
-                    return ConsulResultString;
-                }
-            })
-            {
-                appSettings.GetAll();
-
-                var expected = new Uri($"{DefaultUrl}?keys");
-
-                firstUri.Should().Be(expected);
-            }
-        }
-
-        [Fact]
-        public void GetAll_CallsGet_ForEveryFoundKey()
-        {
-            const string keysJson = "[ \"mates\", \"place\"]";
-
-            var callList = new List<Uri>();
-            int count = 0;
-
-            using (new HttpResultsFilter
-            {
-                StringResultFn = (request, s) =>
-                {
-                    if (count++ > 0)
-                    {
-                        callList.Add(request.RequestUri);
-                        return ConsulResultString;
-                    }
-                    return keysJson;
-                }
-            })
-            {
-                appSettings.GetAll();
-
-                callList[0].Should().Be(new Uri($"{DefaultUrl}mates"));
-                callList[1].Should().Be(new Uri($"{DefaultUrl}place"));
-            }
-        }
-
-        [Fact]
-        public void GetAll_ReturnsCorrectKeys()
-        {
-            const string keysJson = "[ \"mates\", \"place\"]";
-
-            int count = 0;
-
-            using (new HttpResultsFilter
-            {
-                StringResultFn = (request, s) =>
-                {
-                    return count++ > 0 ? ConsulResultString : keysJson;
-                }
-            })
-            {
-                var results = appSettings.GetAll();
-
-                results.Count.Should().Be(2);
-                results.Should().ContainKeys("mates", "place");
-            }
+            VerifyEndpoint(() => appSettings.GetAll(), key: null);
         }
 
         [Fact]

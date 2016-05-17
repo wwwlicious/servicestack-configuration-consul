@@ -160,14 +160,6 @@ namespace ServiceStack.Configuration.Consul.Tests
         }
 
         [Fact]
-        public void Exists_CallsGetEndpoint_WithSlashes_IfNotInCache()
-        {
-            const string key = "foo/bar";
-            A.CallTo(() => cacheClient.Get<object>(key)).Returns(null);
-            VerifyEndpoint(() => appSettings.Exists(key), key: key);
-        }
-
-        [Fact]
         public void Exists_ReturnsTrue_IfKeyFound()
         {
             A.CallTo(() => cacheClient.Get<object>(SampleKey)).Returns(null);
@@ -232,14 +224,6 @@ namespace ServiceStack.Configuration.Consul.Tests
         {
             A.CallTo(() => cacheClient.Get<string>(SampleKey)).Returns(null);
             VerifyEndpoint(() => appSettings.GetString(SampleKey));
-        }
-
-        [Fact]
-        public void GetString_CallsGetEndpoint_WithSlashes()
-        {
-            const string key = "foo/bar";
-            A.CallTo(() => cacheClient.Get<string>(key)).Returns(null);
-            VerifyEndpoint(() => appSettings.GetString(key), key: key);
         }
 
         [Fact]
@@ -509,7 +493,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             var list = new List<string> { "Rolles", "Rickson", "Royler", "Royce" };
 
             var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(TypeSerializer.SerializeToString(list)));
-            string dictResult = $"[{{\"Key\":\"Key1212\",\"Value\":\"{base64String}\"}}]";
+            string dictResult = $"[{{\"Key\":\"ss/Key1212\",\"Value\":\"{base64String}\"}}]";
 
             using (GetStandardHttpResultsFilter(dictResult))
             {
@@ -540,14 +524,13 @@ namespace ServiceStack.Configuration.Consul.Tests
         [Fact]
         public void Set_CallsSetEndpoint()
         {
-            VerifyEndpoint(() => appSettings.Set(SampleKey, 12345), "PUT", "true");
+            VerifyEndpoint(() => appSettings.Set("ss/" + SampleKey, 12345), "PUT", "true");
         }
 
         [Fact]
         public void Set_CallsGetEndpoint_WithSlashes()
         {
-            const string key = "foo/bar";
-            VerifyEndpoint(() => appSettings.Set(key, 22), "PUT", "true", key);
+            VerifyEndpoint(() => appSettings.Set("ss/" + SlashKey, 22), "PUT", "true", SlashKey);
         }
 
         [Fact]
@@ -614,72 +597,22 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void GetAll_GetsAllKeys()
         {
             A.CallTo(() => cacheClient.Get<Dictionary<string, string>>(All)).Returns(null);
-            A.CallTo(() => cacheClient.Get<List<string>>(AllKeys)).Returns(null);
-            Uri firstUri = null;
-
-            using (new HttpResultsFilter
-            {
-                StringResultFn = (request, s) =>
-                {
-                    if (firstUri == null)
-                        firstUri = request.RequestUri;
-                    return ConsulResultString;
-                }
-            })
-            {
-                appSettings.GetAll();
-
-                var expected = new Uri($"{DefaultUrl}?keys");
-
-                firstUri.Should().Be(expected);
-            }
-        }
-
-        [Fact]
-        public void GetAll_ReturnsCorrectKeys()
-        {
-            A.CallTo(() => cacheClient.Get<Dictionary<string, string>>(All)).Returns(null);
-            A.CallTo(() => cacheClient.Get<List<string>>(AllKeys)).Returns(null);
-            const string keysJson = "[ \"mates\", \"place\"]";
-
-            int count = 0;
-
-            using (new HttpResultsFilter
-            {
-                StringResultFn = (request, s) =>
-                {
-                    return count++ > 0 ? ConsulResultString : keysJson;
-                }
-            })
-            {
-                var results = appSettings.GetAll();
-
-                results.Count.Should().Be(2);
-                results.Should().ContainKeys("mates", "place");
-            }
+            
+            VerifyEndpoint(() => appSettings.GetAll(), key: null);
         }
 
         [Fact]
         public void GetAll_AddsToCache()
         {
             A.CallTo(() => cacheClient.Get<Dictionary<string, string>>(All)).Returns(null);
-            A.CallTo(() => cacheClient.Get<List<string>>(AllKeys)).Returns(null);
-            const string keysJson = "[ \"mates\", \"place\"]";
 
-            int count = 0;
+            string dictResponse;
+            GenerateDictionaryResponse(out dictResponse);
 
             Dictionary<string, string> results;
 
-            using (new HttpResultsFilter
-            {
-                StringResultFn = (request, s) =>
-                {
-                    return count++ > 0 ? ConsulResultString : keysJson;
-                }
-            })
-            {
+            using (new HttpResultsFilter { StringResult = dictResponse })
                 results = appSettings.GetAll();
-            }
 
             A.CallTo(() => cacheClient.Add(All, results, defaultTtl)).MustHaveHappened();
         }

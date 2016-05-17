@@ -63,16 +63,34 @@ The recommendation is to use `CachedConsulAppSetting` as this provides some prot
 `ConsulAppSetting` is a basic implementation of `IAppSettings` that makes calls directly to Consul K/V store on every request. The URL of the consul instance to use can be specified as an optional constructor argument.
 
 ### `CachedConsulAppSetting`
-`CachedConsulAppSetting` is a thin wrapper around `ConsulAppSetting` that caches all fetched requests for 1500ms (by default. The time, in ms, can be specified as a constructor argument). If a repeate call is made for same key within the caching time the result will be served from the cache rather than the K/V store.
+`CachedConsulAppSetting` is a thin wrapper around `ConsulAppSetting` that caches all fetched requests for 2000ms (by default. The time, in ms, can be specified as a constructor argument). If a repeat call is made for the same key within the caching time the result will be served from the cache rather than the K/V store.
 
 Calls to Consul are made via a loopback address so will be quick, however caching results avoids the potential to overload Consul by making too many requests in a short period of time.
 
-The default `ICacheClient` implementation used is `MemoryCacheClient`. A different implementation if `ICacheClient` can be specified using the `WithCacheClient(ICacheClient cacheClient)` method, however the recommendation is to use a local memory cache. The goal of the `CachedConsulAppSetting` is to avoid many repeated loopback http requests in a small period of time so there is little to gain in replacing these calls with many requests to a remote caching solution.
+The default `ICacheClient` implementation used is `MemoryCacheClient`. A different implementation of `ICacheClient` can be specified using the `WithCacheClient(ICacheClient cacheClient)` method, however the recommendation is to use a local memory cache. The goal of the `CachedConsulAppSetting` is to avoid many repeated loopback http requests in a small period of time so there is little to gain in replacing these calls with many requests to a remote caching solution.
 
 ```charp
 // Cache results for 5000ms in new instance of MyCacheClient.
 AppSettings = new CachedConsulAppSettings(5000).WithCacheClient(new MyCacheClient());
 ```
+
+### Multi Level Keys
+Consul K/V store supports the concept of folders. Any element of a Key that precedes a '/' is treated as a folder. This allows the same key to be represented at different levels of specificity. This plugin looks at the following levels (from most to least specific):
+
+* ss/{key}/{servicename}/{version} (version specific)
+* ss/{key}/{servicename} (service specific)
+* ss/{key} (default key)
+
+This would allow an appSetting with key "cacheTimeout" to differ for a specific version of a service, differ per service or have a default value for all services. The both implementations of `ConsulAppSettings` will transparently try and find the most specific match following the above pattern.
+
+#### Key Makeup
+In the above example the fields used to check for different keys are as follows:
+
+* ss/ - this is a default folder to separate all values used by ServiceStack.
+* {key} - the key supplied to the `IAppSetting` method.
+* {servicename} - `AppHost.ServiceName`
+* {version} - 'AppHost.Config.ApiVersion`
+
 
 ## Demo
 ServiceStack.Configuration.Consul.Demo is a console app that starts a self hosted application that runs as [http://127.0.0.1:8093/](http://127.0.0.1:8093/). This contains a simple service that takes a GET and PUT request:
@@ -91,3 +109,6 @@ By managing configuration as an external concern the way in which it is consumed
 For example, if a range of systems need to use the same connection string this can be updated in the central Consul K/V store and is then available to all applications without needing to make any changes to them (e.g. redeploy or bouncing appPools etc):
 
 ![Configuration Management](assets/CentralConfiguration.png)
+
+## Notes/Restrictions
+Calls to `GetAll()` will be restricted to the first 50 results to avoid returning unbounded results.

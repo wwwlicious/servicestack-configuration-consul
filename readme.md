@@ -109,6 +109,3 @@ By managing configuration as an external concern the way in which it is consumed
 For example, if a range of systems need to use the same connection string this can be updated in the central Consul K/V store and is then available to all applications without needing to make any changes to them (e.g. redeploy or bouncing appPools etc):
 
 ![Configuration Management](assets/CentralConfiguration.png)
-
-## Notes/Restrictions
-Calls to `GetAll()` will be restricted to the first 50 results to avoid returning unbounded results.

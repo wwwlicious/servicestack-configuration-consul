@@ -11,7 +11,6 @@ namespace ServiceStack.Configuration.Consul
     using System.Runtime.Serialization;
     using Configuration;
     using DTO;
-    using Extensions;
     using Logging;
 
     /// <summary>
@@ -19,8 +18,6 @@ namespace ServiceStack.Configuration.Consul
     /// </summary>
     public class ConsulAppSettings : IAppSettings
     {
-        private const int MaxResultSet = 50;
-
         private readonly string keyValueEndpoint;
         private readonly string consulUri;
         private readonly ILog log = LogManager.GetLogger(typeof(ConsulAppSettings));
@@ -45,12 +42,7 @@ namespace ServiceStack.Configuration.Consul
             // GetAll is a call with a null key as all keys live under known subfolder (ss)
             var values = GetKeyValuesFromConsul(null);
 
-            if (!values.IsSuccess)
-                return null;
-
-            return values.Value.Count < MaxResultSet
-                       ? values.Value.ConvertToDictionary()
-                       : values.Value.Take(MaxResultSet).ConvertToDictionary();
+            return values.IsSuccess ? values.Value.ToDictionary(k => k.Key, v => v.GetValue<object>().ToString()) : null;
         }
 
         public virtual List<string> GetAllKeys()

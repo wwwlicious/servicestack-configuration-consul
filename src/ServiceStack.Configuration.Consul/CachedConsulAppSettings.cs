@@ -54,38 +54,14 @@ namespace ServiceStack.Configuration.Consul
         }
 
         public override Dictionary<string, string> GetAll()
-        {
-            var value = CacheClient.Get<Dictionary<string, string>>(AllValues);
-            if (value != null)
-                return value;
-
-            value = base.GetAll();
-
-            if (value != null)
-                CacheClient.Add(AllValues, value, ttl);
-
-            return value;
-        }
+            => TryGetCached(AllValues, base.GetAll);
 
         public override List<string> GetAllKeys()
-        {
-            var value = CacheClient.Get<List<string>>(AllKeys);
-            if (value != null)
-                return value;
-
-            value = base.GetAllKeys();
-
-            if (value != null)
-                CacheClient.Add(AllKeys, value, ttl);
-
-            return value;
-        }
+            => TryGetCached(AllKeys, base.GetAllKeys);
 
         public override bool Exists(string key)
         {
             key.ThrowIfNullOrEmpty(nameof(key));
-            
-
             return Get<object>(key) != null;
         }
 
@@ -97,7 +73,7 @@ namespace ServiceStack.Configuration.Consul
         public override T Get<T>(string name, T defaultValue)
         {
             name.ThrowIfNullOrEmpty(nameof(name));
-
+            
             var value = CacheClient.Get<T>(name);
             if (value != null)
                 return value;
@@ -143,6 +119,20 @@ namespace ServiceStack.Configuration.Consul
         private void Init(int cacheTtl)
         {
             ttl = TimeSpan.FromMilliseconds(cacheTtl);
+        }
+
+        private T TryGetCached<T>(string key, Func<T> getFromConsul)
+        {
+            var value = CacheClient.Get<T>(key);
+            if (value != null)
+                return value;
+
+            value = getFromConsul();
+
+            if (value != null)
+                CacheClient.Add(key, value, ttl);
+
+            return value;
         }
     }
 }

@@ -43,7 +43,7 @@ namespace ServiceStack.Configuration.Consul
         public virtual Dictionary<string, string> GetAll()
         {
             // GetAll is a call with a null key as all keys live under known subfolder (ss)
-            var values = GetValues(null);
+            var values = GetKeyValuesFromConsul(null);
 
             if (!values.IsSuccess)
                 return null;
@@ -140,39 +140,37 @@ namespace ServiceStack.Configuration.Consul
 
         private Result<T> GetValue<T>(string name)
         {
-            var resultValues = GetValues(name);
+            var resultValues = GetKeyValuesFromConsul(name);
 
-            if (resultValues.IsSuccess)
-            {
-                var kv = KeyUtilities.GetMostSpecificMatch(resultValues.Value, name);
-                try
-                {
-                    return Result<T>.Success(kv.GetValue<T>());
-                }
-                catch (NotSupportedException ex)
-                {
-                    log.Error($"Unable to deserialise config value with key {name}", ex);
-                    return Result<T>.Fail();
-                }
-                catch (SerializationException ex)
-                {
-                    log.Error($"Unable to deserialise config value with key {name}", ex);
-                    return Result<T>.Fail();
-                }
-            }
+            if (!resultValues.IsSuccess) return Result<T>.Fail();
 
-            return Result<T>.Fail();
-        }
-
-        private Result<List<KeyValue>> GetValues(string name)
-        {
-            var key = KeyUtilities.GetDefaultLookupKey(name);
+            var kv = KeyUtilities.GetMostSpecificMatch(resultValues.Value, name);
             try
             {
-                // New KV object with key
+                return Result<T>.Success(kv.GetValue<T>());
+            }
+            catch (NotSupportedException ex)
+            {
+                log.Error($"Unable to deserialise config value with key {name}", ex);
+                return Result<T>.Fail();
+            }
+            catch (SerializationException ex)
+            {
+                log.Error($"Unable to deserialise config value with key {name}", ex);
+                return Result<T>.Fail();
+            }
+        }
+
+        private Result<List<KeyValue>> GetKeyValuesFromConsul(string name)
+        {
+            // Default lookup key is actual key preceded by default folder prefix
+            var key = KeyUtilities.GetDefaultLookupKey(name);
+
+            try
+            {
                 var keyVal = KeyValue.Create(key);
 
-                // Get the URL to call
+                // Get the URL to call. Use ?recurse to get any potential matches
                 var url = $"{consulUri.CombineWith(keyVal.ToGetUrl())}?recurse";
 
                 log.Debug($"Calling {url} to get values");

@@ -28,7 +28,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             cacheClient = A.Fake<ICacheClient>();
             appSettings =
                 new CachedConsulAppSettings().WithCacheClient(cacheClient);
-            defaultTtl = TimeSpan.FromMilliseconds(1500);
+            defaultTtl = TimeSpan.FromMilliseconds(2000);
         }
 
         [Theory]

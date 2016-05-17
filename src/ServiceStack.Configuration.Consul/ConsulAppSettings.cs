@@ -38,19 +38,13 @@ namespace ServiceStack.Configuration.Consul
 
         public virtual Dictionary<string, string> GetAll()
         {
-            var allkeys = GetAllKeys();
+            var values = GetValues(null);
 
-            var all = new Dictionary<string, string>();
-            foreach (var key in allkeys)
-            {
-                var value = Get<object>(key);
-                if (value != null)
-                {
-                    all.Add(key, value.ToString());
-                }
-            }
+            // TODO - limit results
+            if (values.IsSuccess)
+                return values.Value.ToDictionary(k => k.Key, v => v.GetValue<object>().ToString());
 
-            return all;
+            return null;
         }
 
         public virtual List<string> GetAllKeys()
@@ -58,6 +52,7 @@ namespace ServiceStack.Configuration.Consul
             // GET ?keys []
             try
             {
+                // TODO - make async
                 return $"{keyValueEndpoint}?keys".GetJsonFromUrl().FromJson<List<string>>();
             }
             catch (Exception ex)
@@ -139,39 +134,48 @@ namespace ServiceStack.Configuration.Consul
 
         private Result<T> GetValue<T>(string name)
         {
-            var key = $"ss/{name}";
+            var resultValues = GetValues(name);
+
+            if (resultValues.IsSuccess)
+            {
+                var kv = KeyUtilities.GetMostSpecificMatch(resultValues.Value, name);
+                return Result<T>.Success(kv.GetValue<T>());
+            }
+
+            return Result<T>.Fail();
+        }
+
+        private Result<List<KeyValue>> GetValues(string name)
+        {
+            var key = KeyUtilities.GetDefaultLookupKey(name);
             try
             {
-                // Get a KeyValue object 
+                // New KV object with key
                 var keyVal = KeyValue.Create(key);
 
-                // Get the URL with
-                var url = consulUri.CombineWith(keyVal.ToGetUrl()) + "?recurse";
+                // Get the URL to call
+                var url = $"{consulUri.CombineWith(keyVal.ToGetUrl())}?recurse";
 
                 log.Debug($"Calling {url} to get values");
 
                 var task = url.SendStringToUrlAsync("GET", accept: "application/json");
 
-                // Add timeout??
+                // TODO Add timeout?
                 task.Wait();
 
-                // Make a single call with ?recurse
+                // Consul KV always returns a collection
                 var keyValues = task.Result.FromJson<List<KeyValue>>();
 
-                if (keyValues.Count == 0)
-                    return Result<T>.Fail();
-
-                var value = keyValues.Last();
-                return Result<T>.Success(value.GetValue<T>());
+                return keyValues.Count == 0 ? Result<List<KeyValue>>.Fail() : Result<List<KeyValue>>.Success(keyValues);
             }
             catch (AggregateException ex)
             {
                 foreach (var x in ex.Flatten().InnerExceptions)
                 {
-                    log.Error($"Error getting config value with key {key}", ex);
+                    log.Error($"Error getting config value with key {key}", x);
                 }
 
-                return Result<T>.Fail();
+                return Result<List<KeyValue>>.Fail();
             }
         }
     }

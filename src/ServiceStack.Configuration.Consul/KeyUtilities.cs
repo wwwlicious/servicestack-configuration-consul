@@ -5,10 +5,13 @@
 namespace ServiceStack.Configuration.Consul
 {
     using System.Collections.Generic;
+    using System.Linq;
+    using DTO;
 
-    public class KeyUtilities
+    public static class KeyUtilities
     {
-        public static string GetDefaultLookupKey(string key) => $"ss/{key}";
+        public const string Prefix = "ss/";
+        public static string GetDefaultLookupKey(string key) => $"{Prefix}{key}";
 
         /// <summary>
         /// For specified key gets a list of all possible locations from most -> least specific
@@ -17,7 +20,7 @@ namespace ServiceStack.Configuration.Consul
         /// <returns>List of keys where value may be found (most to least specific)</returns>
         public static IEnumerable<string> GetPossibleKeys(string key)
         {
-            var defaultKey = GetDefaultLookupKey(key);
+            var defaultKey = !key.StartsWith(Prefix) ? GetDefaultLookupKey(key) : key;
 
             var appHost = HostContext.AppHost;
 
@@ -25,7 +28,7 @@ namespace ServiceStack.Configuration.Consul
                 return new[] { defaultKey };
 
             var serviceName = appHost.ServiceName;
-            var serviceKey = $"ss/{key}/{serviceName}";
+            var serviceKey = $"{defaultKey}/{serviceName}";
 
             if (appHost.Config == null)
                 return new[] { serviceKey, defaultKey };
@@ -39,6 +42,26 @@ namespace ServiceStack.Configuration.Consul
                 serviceKey, // service specific (ss/keyname/service)
                 defaultKey // default (ss/keyname)
             };
+        }
+
+        /// <summary>
+        /// Finds the most specific match for key from KeyValue candidates
+        /// </summary>
+        /// <param name="candidates">Collection of candidate results</param>
+        /// <param name="key">Key to search for</param>
+        /// <returns>Most specific matching KeyValue from collection</returns>
+        public static KeyValue GetMostSpecificMatch(IEnumerable<KeyValue> candidates, string key)
+        {
+            if (candidates == null)
+                return null;
+
+            var keyValues = candidates as IList<KeyValue> ?? candidates.ToList();
+            if (keyValues.Count == 0)
+                return null;
+
+            var possibleKeys = GetPossibleKeys(key).ToList();
+
+            return keyValues.Reverse().FirstOrDefault(candidate => possibleKeys.Contains(candidate.Key));
         }
     }
 }

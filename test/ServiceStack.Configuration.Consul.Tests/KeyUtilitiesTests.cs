@@ -5,7 +5,9 @@
 namespace ServiceStack.Configuration.Consul.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
+    using Consul.DTO;
     using FluentAssertions;
     using Testing;
     using Xunit;
@@ -17,20 +19,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         private const string Key = "findMe";
         private const string ServiceName = "testService";
 
-        [Fact]
-        public void GetPossibleKeys_ValuesInCorrectOrder()
-        {
-            Init();
-            var values = KeyUtilities.GetPossibleKeys(Key).ToList();
-            values.Count.Should().Be(3);
-            values[0].Should().Be($"ss/{Key}/{ServiceName}/1.0");
-            values[1].Should().Be($"ss/{Key}/{ServiceName}");
-            values[2].Should().Be($"ss/{Key}");
-        }
-
-        public void Dispose() => appHost?.Dispose();
-
-        private void Init()
+        public KeyUtilitiesTests()
         {
             if (ServiceStackHost.Instance == null)
             {
@@ -38,6 +27,118 @@ namespace ServiceStack.Configuration.Consul.Tests
                 appHost.Init();
             }
         }
+
+        [Fact]
+        public void GetPossibleKeys_AddsPrefixIfNotSupplied()
+        {
+            var prefixedKey = $"ss/{Key}";
+            var values = KeyUtilities.GetPossibleKeys(Key).ToList();
+            values.Count.Should().Be(3);
+            values[0].Should().Be($"{prefixedKey}/{ServiceName}/1.0");
+            values[1].Should().Be($"{prefixedKey}/{ServiceName}");
+            values[2].Should().Be($"{prefixedKey}");
+        }
+
+        [Fact]
+        public void GetPossibleKeys_ValuesInCorrectOrder()
+        {
+            var prefixedKey = $"ss/{Key}";
+            var values = KeyUtilities.GetPossibleKeys(prefixedKey).ToList();
+            values.Count.Should().Be(3);
+            values[0].Should().Be($"{prefixedKey}/{ServiceName}/1.0");
+            values[1].Should().Be($"{prefixedKey}/{ServiceName}");
+            values[2].Should().Be($"{prefixedKey}");
+        }
+
+        [Fact]
+        public void GetDefaultLookupKey_ReturnsCorrect()
+            => KeyUtilities.GetDefaultLookupKey(Key).Should().Be("ss/findMe");
+
+        [Fact]
+        public void GetMostSpecificMatch_ReturnsNull_IfCandidatesNull()
+            => KeyUtilities.GetMostSpecificMatch(null, Key).Should().BeNull();
+
+        [Fact]
+        public void GetMostSpecificMatch_ReturnsNull_IfCandidatesEmpty()
+            => KeyUtilities.GetMostSpecificMatch(new List<KeyValue>(), Key).Should().BeNull();
+
+        [Fact]
+        public void GetMostSpecificMatch_ReturnsNull_IfNoMatches()
+        {
+            var list = new List<KeyValue> { new KeyValue { Key = "ss/notfound" } };
+
+            KeyUtilities.GetMostSpecificMatch(list, Key).Should().BeNull();
+        }
+
+        [Fact]
+        public void GetMostSpecificMatch_ReturnsReturnsVersionFirst()
+        {
+            var list = new List<KeyValue>
+            {
+                new KeyValue { Key = $"ss/{Key}" },
+                new KeyValue { Key = $"ss/{Key}/{ServiceName}" },
+                new KeyValue { Key = $"ss/{Key}/{ServiceName}/1.0" }
+            };
+
+            var result = KeyUtilities.GetMostSpecificMatch(list, Key);
+
+            result.Key.Should().Be($"ss/{Key}/{ServiceName}/1.0");
+        }
+
+        [Fact]
+        public void GetMostSpecificMatch_ReturnsService_IfNonMatchingVersion()
+        {
+            var list = new List<KeyValue>
+            {
+                new KeyValue { Key = $"ss/{Key}" },
+                new KeyValue { Key = $"ss/{Key}/{ServiceName}" },
+                new KeyValue { Key = $"ss/{Key}/{ServiceName}/12.0" }
+            };
+
+            var result = KeyUtilities.GetMostSpecificMatch(list, Key);
+
+            result.Key.Should().Be($"ss/{Key}/{ServiceName}");
+        }
+
+        [Fact]
+        public void GetMostSpecificMatch_ReturnsService_IfNoVersion()
+        {
+            var list = new List<KeyValue>
+            {
+                new KeyValue { Key = $"ss/{Key}" },
+                new KeyValue { Key = $"ss/{Key}/{ServiceName}" }
+            };
+
+            var result = KeyUtilities.GetMostSpecificMatch(list, Key);
+
+            result.Key.Should().Be($"ss/{Key}/{ServiceName}");
+        }
+
+        [Fact]
+        public void GetMostSpecificMatch_ReturnsKey_IfNoMatchingService()
+        {
+            var list = new List<KeyValue>
+            {
+                new KeyValue { Key = $"ss/{Key}" },
+                new KeyValue { Key = $"ss/{Key}/{ServiceName}spsps" }
+            };
+
+            var result = KeyUtilities.GetMostSpecificMatch(list, Key);
+
+            result.Key.Should().Be($"ss/{Key}");
+        }
+
+        [Fact]
+        public void GetMostSpecificMatch_ReturnsKey_IfNoService()
+        {
+            var list = new List<KeyValue>{new KeyValue { Key = $"ss/{Key}" } };
+
+            var result = KeyUtilities.GetMostSpecificMatch(list, Key);
+
+            result.Key.Should().Be($"ss/{Key}");
+        }
+
+        public void Dispose() => appHost?.Dispose();
     }
 
     [Collection("KeyUtilitiesTests")]

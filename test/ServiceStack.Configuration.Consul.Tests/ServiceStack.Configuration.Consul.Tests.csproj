@@ -92,6 +92,8 @@
     <Compile Include="AppSettingTestsBase.cs" />
     <Compile Include="CachedConsulAppSettingsTests.cs" />
     <Compile Include="ConsulAppSettingsTests.cs" />
+    <Compile Include="Fixtures\AppHostCollection.cs" />
+    <Compile Include="Fixtures\AppHostFixture.cs" />
     <Compile Include="Human.cs" />
     <Compile Include="DTO\KeyValueTests.cs" />
     <Compile Include="KeyUtilitiesTests.cs" />

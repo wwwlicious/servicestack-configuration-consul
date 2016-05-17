@@ -8,24 +8,19 @@ namespace ServiceStack.Configuration.Consul.Tests
     using System.Collections.Generic;
     using System.Linq;
     using Consul.DTO;
+    using Fixtures;
     using FluentAssertions;
-    using Testing;
     using Xunit;
 
-    [Collection("KeyUtilitiesTests")]
-    public class KeyUtilitiesTests : IDisposable
+    [Collection("AppHost")]
+    public class KeyUtilitiesTests 
     {
-        private ServiceStackHost appHost;
         private const string Key = "findMe";
-        private const string ServiceName = "testService";
+        private readonly AppHostFixture fixture;
 
-        public KeyUtilitiesTests()
+        public KeyUtilitiesTests(AppHostFixture fixture)
         {
-            if (ServiceStackHost.Instance == null)
-            {
-                appHost = new BasicAppHost { TestMode = true, ServiceName = ServiceName };
-                appHost.Init();
-            }
+            this.fixture = fixture;
         }
 
         [Fact]
@@ -33,10 +28,11 @@ namespace ServiceStack.Configuration.Consul.Tests
         {
             var prefixedKey = $"ss/{Key}";
             var values = KeyUtilities.GetPossibleKeys(Key).ToList();
-            values.Count.Should().Be(3);
-            values[0].Should().Be($"{prefixedKey}/{ServiceName}/1.0");
-            values[1].Should().Be($"{prefixedKey}/{ServiceName}");
-            values[2].Should().Be($"{prefixedKey}");
+            values.Count.Should().Be(4);
+            values[0].Should().Be($"{prefixedKey}/{AppHostFixture.ServiceName}/i/127.0.0.1:8090|api");
+            values[1].Should().Be($"{prefixedKey}/{AppHostFixture.ServiceName}/1.0");
+            values[2].Should().Be($"{prefixedKey}/{AppHostFixture.ServiceName}");
+            values[3].Should().Be($"{prefixedKey}");
         }
 
         [Fact]
@@ -44,10 +40,11 @@ namespace ServiceStack.Configuration.Consul.Tests
         {
             var prefixedKey = $"ss/{Key}";
             var values = KeyUtilities.GetPossibleKeys(prefixedKey).ToList();
-            values.Count.Should().Be(3);
-            values[0].Should().Be($"{prefixedKey}/{ServiceName}/1.0");
-            values[1].Should().Be($"{prefixedKey}/{ServiceName}");
-            values[2].Should().Be($"{prefixedKey}");
+            values.Count.Should().Be(4);
+            values[0].Should().Be($"{prefixedKey}/{AppHostFixture.ServiceName}/i/127.0.0.1:8090|api");
+            values[1].Should().Be($"{prefixedKey}/{AppHostFixture.ServiceName}/1.0");
+            values[2].Should().Be($"{prefixedKey}/{AppHostFixture.ServiceName}");
+            values[3].Should().Be($"{prefixedKey}");
         }
 
         [Fact]
@@ -76,13 +73,13 @@ namespace ServiceStack.Configuration.Consul.Tests
             var list = new List<KeyValue>
             {
                 new KeyValue { Key = $"ss/{Key}" },
-                new KeyValue { Key = $"ss/{Key}/{ServiceName}" },
-                new KeyValue { Key = $"ss/{Key}/{ServiceName}/1.0" }
+                new KeyValue { Key = $"ss/{Key}/{AppHostFixture.ServiceName}" },
+                new KeyValue { Key = $"ss/{Key}/{AppHostFixture.ServiceName}/1.0" }
             };
 
             var result = KeyUtilities.GetMostSpecificMatch(list, Key);
 
-            result.Key.Should().Be($"ss/{Key}/{ServiceName}/1.0");
+            result.Key.Should().Be($"ss/{Key}/{AppHostFixture.ServiceName}/1.0");
         }
 
         [Fact]
@@ -91,13 +88,13 @@ namespace ServiceStack.Configuration.Consul.Tests
             var list = new List<KeyValue>
             {
                 new KeyValue { Key = $"ss/{Key}" },
-                new KeyValue { Key = $"ss/{Key}/{ServiceName}" },
-                new KeyValue { Key = $"ss/{Key}/{ServiceName}/12.0" }
+                new KeyValue { Key = $"ss/{Key}/{AppHostFixture.ServiceName}" },
+                new KeyValue { Key = $"ss/{Key}/{AppHostFixture.ServiceName}/12.0" }
             };
 
             var result = KeyUtilities.GetMostSpecificMatch(list, Key);
 
-            result.Key.Should().Be($"ss/{Key}/{ServiceName}");
+            result.Key.Should().Be($"ss/{Key}/{AppHostFixture.ServiceName}");
         }
 
         [Fact]
@@ -106,12 +103,12 @@ namespace ServiceStack.Configuration.Consul.Tests
             var list = new List<KeyValue>
             {
                 new KeyValue { Key = $"ss/{Key}" },
-                new KeyValue { Key = $"ss/{Key}/{ServiceName}" }
+                new KeyValue { Key = $"ss/{Key}/{AppHostFixture.ServiceName}" }
             };
 
             var result = KeyUtilities.GetMostSpecificMatch(list, Key);
 
-            result.Key.Should().Be($"ss/{Key}/{ServiceName}");
+            result.Key.Should().Be($"ss/{Key}/{AppHostFixture.ServiceName}");
         }
 
         [Fact]
@@ -120,7 +117,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             var list = new List<KeyValue>
             {
                 new KeyValue { Key = $"ss/{Key}" },
-                new KeyValue { Key = $"ss/{Key}/{ServiceName}spsps" }
+                new KeyValue { Key = $"ss/{Key}/{AppHostFixture.ServiceName}spsps" }
             };
 
             var result = KeyUtilities.GetMostSpecificMatch(list, Key);
@@ -137,8 +134,6 @@ namespace ServiceStack.Configuration.Consul.Tests
 
             result.Key.Should().Be($"ss/{Key}");
         }
-
-        public void Dispose() => appHost?.Dispose();
     }
 
     [Collection("KeyUtilitiesTests")]

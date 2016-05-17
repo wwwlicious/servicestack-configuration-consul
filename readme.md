@@ -77,9 +77,12 @@ AppSettings = new CachedConsulAppSettings(5000).WithCacheClient(new MyCacheClien
 ### Multi Level Keys
 Consul K/V store supports the concept of folders. Any element of a Key that precedes a '/' is treated as a folder. This allows the same key to be represented at different levels of specificity. This plugin looks at the following levels (from most to least specific):
 
-* ss/{key}/{servicename}/{version} (version specific)
-* ss/{key}/{servicename} (service specific)
-* ss/{key} (default key)
+| Name | Layout | Example |
+| --- | --- | --- |
+| instance specific | ss/{key}/{servicename}/i/{instance} | ss/myKey/productService/i/127.0.0.1:8095|api |
+| version specific | ss/{key}/{servicename}/{version} | ss/myKey/productService/1.2 |
+| service specific | ss/{key}/{servicename} | ss/myKey/productService |
+| default | ss/{key} | ss/myKey |
 
 This would allow an appSetting with key "cacheTimeout" to differ for a specific version of a service, differ per service or have a default value for all services. The both implementations of `ConsulAppSettings` will transparently try and find the most specific match following the above pattern.
 
@@ -89,7 +92,8 @@ In the above example the fields used to check for different keys are as follows:
 * ss/ - this is a default folder to separate all values used by ServiceStack.
 * {key} - the key supplied to the `IAppSetting` method.
 * {servicename} - `AppHost.ServiceName`
-* {version} - 'AppHost.Config.ApiVersion`
+* {version} - `AppHost.Config.ApiVersion`
+* {instance} - `AppHost.Config.WebHostUrl` + "|" + `AppHost.Config.HandlerFactoryPath`
 
 
 ## Demo

@@ -9,16 +9,20 @@ namespace ServiceStack.Configuration.Consul.Tests
     using System.Configuration;
     using System.Net;
     using System.Text;
+    using Fixtures;
     using FluentAssertions;
     using Text;
     using Xunit;
 
+    [Collection("AppHost")]
     public class ConsulAppSettingsTests : AppSettingTestsBase
     {
         private readonly ConsulAppSettings appSettings;
+        private readonly AppHostFixture fixture;
 
-        public ConsulAppSettingsTests()
+        public ConsulAppSettingsTests(AppHostFixture fixture)
         {
+            this.fixture = fixture;
             appSettings = new ConsulAppSettings();
         }
 

@@ -35,9 +35,12 @@ namespace ServiceStack.Configuration.Consul
 
             var version = appHost.Config.ApiVersion;
 
-            // TODO Instance specific key
+            var instanceId = GetInstanceId(appHost.Config);
+
+            // TODO Cache these as they'll be the same always
             return new[]
             {
+                $"{serviceKey}/i/{instanceId}", // instance specific (ss/keyname/service/127.0.0.1:8080)
                 $"{serviceKey}/{version}", // version specific (ss/keyname/service/v1)
                 serviceKey, // service specific (ss/keyname/service)
                 defaultKey // default (ss/keyname)
@@ -62,6 +65,18 @@ namespace ServiceStack.Configuration.Consul
             var possibleKeys = GetPossibleKeys(key).ToList();
 
             return keyValues.Reverse().FirstOrDefault(candidate => possibleKeys.Contains(candidate.Key));
+        }
+
+        private static string GetInstanceId(HostConfig config)
+        {
+            var hostUrl = string.IsNullOrEmpty(config.WebHostUrl)
+                              ? string.Empty
+                              : config.WebHostUrl.WithTrailingSlash().Replace("http://", string.Empty).Replace(
+                                  "https://", string.Empty).Replace("/", "|");
+
+            var factoryPath = config.HandlerFactoryPath;
+
+            return $"{hostUrl}{factoryPath}";
         }
     }
 }

@@ -11,10 +11,12 @@ namespace ServiceStack.Configuration.Consul.Tests
     using System.Text;
     using Caching;
     using FakeItEasy;
+    using Fixtures;
     using FluentAssertions;
     using Text;
     using Xunit;
 
+    [Collection("AppHost")]
     public class CachedConsulAppSettingsTests : AppSettingTestsBase
     {
         private const string AllKeys = "__allKeys";
@@ -22,9 +24,11 @@ namespace ServiceStack.Configuration.Consul.Tests
         private readonly CachedConsulAppSettings appSettings;
         private readonly ICacheClient cacheClient;
         private readonly TimeSpan defaultTtl;
+        private readonly AppHostFixture fixture;
 
-        public CachedConsulAppSettingsTests()
+        public CachedConsulAppSettingsTests(AppHostFixture fixture)
         {
+            this.fixture = fixture;
             cacheClient = A.Fake<ICacheClient>();
             appSettings =
                 new CachedConsulAppSettings().WithCacheClient(cacheClient);

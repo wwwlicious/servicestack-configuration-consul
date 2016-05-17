@@ -42,7 +42,7 @@ namespace ServiceStack.Configuration.Consul.Demo
 
         public override void Configure(Container container)
         {
-            SetConfig(new HostConfig { WebHostUrl = serviceUrl, ApiVersion = "2.3" });
+            SetConfig(new HostConfig { WebHostUrl = serviceUrl, ApiVersion = "2.3", HandlerFactoryPath = "api" });
 
             //AppSettings = new ConsulAppSettings();
 

@@ -5,6 +5,7 @@
 namespace ServiceStack.Configuration.Consul.Demo
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using Funq;
     using Text;
@@ -41,9 +42,11 @@ namespace ServiceStack.Configuration.Consul.Demo
 
         public override void Configure(Container container)
         {
-            SetConfig(new HostConfig { WebHostUrl = serviceUrl });
+            SetConfig(new HostConfig { WebHostUrl = serviceUrl, ApiVersion = "2.3" });
 
-            AppSettings = new ConsulAppSettings();
+            //AppSettings = new ConsulAppSettings();
+
+            AppSettings = new CachedConsulAppSettings(10000);
 
             // Uncomment the following line to use Multi cascading IAppSetting providers
             /*AppSettings = new MultiAppSettings(
@@ -63,15 +66,57 @@ namespace ServiceStack.Configuration.Consul.Demo
                 return AppSettings.GetAllKeys();
 
             var result = AppSettings.GetString(key.Key);
+
+            /*var recurse = AppSettings.GetString("testKey");
+
+            var exists = AppSettings.Exists(key.Key); // True
+            var existsno = AppSettings.Exists($"no{key.Key}"); // False
+
+            var list = AppSettings.GetList($"{key.Key}List"); // default
+            var listno = AppSettings.GetList($"no{key.Key}List"); // not found
+
+            var dict = AppSettings.GetDictionary($"{key.Key}Dict"); // service specifc
+            var dictno = AppSettings.GetDictionary($"no{key.Key}Dict"); // not found
+
+            var str = AppSettings.GetString($"{key.Key}Str"); // version specific "versionspecifico"
+            var strno = AppSettings.GetString($"no{key.Key}Str"); // not found
+
+            var strxx = AppSettings.GetString($"{key.Key}Str/lower"); // default "extra"
+            var strxxno = AppSettings.GetString($"no{key.Key}Str/lower"); // not found
+
+            var type = AppSettings.Get<KeyRequest>($"{key.Key}request"); // default
+            var typeno = AppSettings.Get<KeyRequest>($"no{key.Key}request"); // not found
+            var typedef = AppSettings.Get($"no{key.Key}request", new KeyRequest { Body = "Chirpy cheep", Key = "Fallback value" }); // not found, returns fallback
+
+            var all = AppSettings.GetAll();
+            var keys = AppSettings.GetAllKeys();*/
+
             if (!string.IsNullOrEmpty(result))
+            {
                 return result;
+            }
 
             throw HttpError.NotFound($"Could not find config value with key {key.Key}");
         }
         
         public object Put(KeyRequest key)
         {
+            key.Key = $"ss/" + key.Key;
+
             AppSettings.Set(key.Key, key.Body);
+            /*AppSettings.Set($"{key.Key}/ConfigDemoService", $"{key.Body} service");
+            AppSettings.Set($"{key.Key}/ConfigDemoService/2.3", $"{key.Body} version");
+            AppSettings.Set($"{key.Key}/ConfigDemoService/1.0", $"{key.Body} not found");
+
+            AppSettings.Set($"{key.Key}List", new List<string> { "Ho", "He", "Ha" });
+            AppSettings.Set($"{key.Key}Dict/ConfigDemoService", new Dictionary<string, string> { { "One", "V1" }, { "Two", "V2" } });
+            AppSettings.Set($"{key.Key}Str", "Default string");
+            AppSettings.Set($"{key.Key}Str/ConfigDemoService/2.3", "version-specific");
+
+            AppSettings.Set($"{key.Key}Str/lower", "extra");
+
+            AppSettings.Set($"{key.Key}request", new KeyRequest { Body = "Chirp", Key = "Consul" });*/
+
             return key;
         }
     }

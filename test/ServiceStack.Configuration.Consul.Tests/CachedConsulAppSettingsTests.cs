@@ -88,7 +88,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             {
                 appSettings.GetAllKeys();
 
-                var expected = new Uri($"{DefaultUrl}?keys");
+                var expected = new Uri($"{DefaultUrl}ss/?keys");
 
                 webRequest.RequestUri.Should().Be(expected);
             }
@@ -636,7 +636,7 @@ namespace ServiceStack.Configuration.Consul.Tests
                 const string consulUri = "http://8.8.8.8:1212";
                 new CachedConsulAppSettings(consulUri).GetAllKeys();
 
-                var expected = new Uri($"{consulUri}/v1/kv/?keys");
+                var expected = new Uri($"{consulUri}/v1/kv/ss/?keys");
 
                 webRequest.RequestUri.Should().Be(expected);
             }

@@ -15,7 +15,7 @@ namespace ServiceStack.Configuration.Consul
     {
         private const string AllKeys = "__allKeys";
         private const string AllValues = "__all";
-        private const int DefaultTtl = 1500;
+        private const int DefaultTtl = 2000;
 
         private TimeSpan ttl;
 

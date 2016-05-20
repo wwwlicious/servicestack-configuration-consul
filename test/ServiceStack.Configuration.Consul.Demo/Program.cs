@@ -7,6 +7,7 @@ namespace ServiceStack.Configuration.Consul.Demo
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using Extensions;
     using Funq;
     using Text;
 
@@ -14,7 +15,7 @@ namespace ServiceStack.Configuration.Consul.Demo
     {
         static void Main(string[] args)
         {
-            var serviceUrl = "http://127.0.0.1:8093/";
+            var serviceUrl = "http://127.0.0.1:8093";
             try
             {
                 new AppHost(serviceUrl).Init().Start("http://*:8093/");
@@ -44,9 +45,7 @@ namespace ServiceStack.Configuration.Consul.Demo
         {
             SetConfig(new HostConfig { WebHostUrl = serviceUrl, ApiVersion = "2.3", HandlerFactoryPath = "api" });
 
-            //AppSettings = new ConsulAppSettings();
-
-            AppSettings = new CachedConsulAppSettings(10000);
+            AppSettings = new ConsulAppSettings().WithCache(10000);
 
             // Uncomment the following line to use Multi cascading IAppSetting providers
             /*AppSettings = new MultiAppSettings(
@@ -67,7 +66,7 @@ namespace ServiceStack.Configuration.Consul.Demo
 
             var result = AppSettings.GetString(key.Key);
 
-            /*var recurse = AppSettings.GetString("testKey");
+            var recurse = AppSettings.GetString("testKey");
 
             var exists = AppSettings.Exists(key.Key); // True
             var existsno = AppSettings.Exists($"no{key.Key}"); // False
@@ -78,33 +77,26 @@ namespace ServiceStack.Configuration.Consul.Demo
             var dict = AppSettings.GetDictionary($"{key.Key}Dict"); // service specifc
             var dictno = AppSettings.GetDictionary($"no{key.Key}Dict"); // not found
 
-            var str = AppSettings.GetString($"{key.Key}Str"); // version specific "versionspecifico"
+            var str = AppSettings.GetString($"{key.Key}Str"); // version specific "version-specific"
             var strno = AppSettings.GetString($"no{key.Key}Str"); // not found
 
-            var strxx = AppSettings.GetString($"{key.Key}Str/lower"); // default "extra"
-            var strxxno = AppSettings.GetString($"no{key.Key}Str/lower"); // not found
+            var instance = AppSettings.GetString($"{key.Key}ii"); // version specific "instance-specific"
+
+            var strLower = AppSettings.GetString($"{key.Key}Str/lower"); // default "extra"
+            var strLowerno = AppSettings.GetString($"no{key.Key}Str/lower"); // not found
 
             var type = AppSettings.Get<KeyRequest>($"{key.Key}request"); // default
             var typeno = AppSettings.Get<KeyRequest>($"no{key.Key}request"); // not found
             var typedef = AppSettings.Get($"no{key.Key}request", new KeyRequest { Body = "Chirpy cheep", Key = "Fallback value" }); // not found, returns fallback
-
-            var all = AppSettings.GetAll();
-            var keys = AppSettings.GetAllKeys();*/
-
-            if (!string.IsNullOrEmpty(result))
-            {
-                return result;
-            }
 
             throw HttpError.NotFound($"Could not find config value with key {key.Key}");
         }
         
         public object Put(KeyRequest key)
         {
-            key.Key = $"ss/" + key.Key;
+            key.Key = "ss/" + key.Key;
 
-            AppSettings.Set(key.Key, key.Body);
-            /*AppSettings.Set($"{key.Key}/ConfigDemoService", $"{key.Body} service");
+            AppSettings.Set($"{key.Key}/ConfigDemoService", $"{key.Body} service");
             AppSettings.Set($"{key.Key}/ConfigDemoService/2.3", $"{key.Body} version");
             AppSettings.Set($"{key.Key}/ConfigDemoService/1.0", $"{key.Body} not found");
 
@@ -112,10 +104,14 @@ namespace ServiceStack.Configuration.Consul.Demo
             AppSettings.Set($"{key.Key}Dict/ConfigDemoService", new Dictionary<string, string> { { "One", "V1" }, { "Two", "V2" } });
             AppSettings.Set($"{key.Key}Str", "Default string");
             AppSettings.Set($"{key.Key}Str/ConfigDemoService/2.3", "version-specific");
+            AppSettings.Set($"{key.Key}Str/ConfigDemoService/i/127.0.0.1:8095", "version-specific");
 
             AppSettings.Set($"{key.Key}Str/lower", "extra");
 
-            AppSettings.Set($"{key.Key}request", new KeyRequest { Body = "Chirp", Key = "Consul" });*/
+            AppSettings.Set($"{key.Key}request", new KeyRequest { Body = "Chirp", Key = "Consul" });
+
+            AppSettings.Set($"{key.Key}ii/ConfigDemoService/2.3", "version-specific");
+            AppSettings.Set($"{key.Key}ii/ConfigDemoService/i/127.0.0.1:8093|api", "instance-specific");
 
             return key;
         }

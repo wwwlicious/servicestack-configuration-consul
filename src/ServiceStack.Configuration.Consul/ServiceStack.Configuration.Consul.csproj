@@ -65,7 +65,7 @@
     <Compile Include="CachedAppSettings.cs" />
     <Compile Include="ConsulAppSettings.cs" />
     <Compile Include="DTO\KeyValue.cs" />
-    <Compile Include="Extensions\CachedAppSettingsExtensions.cs" />
+    <Compile Include="Extensions\AppSettingsExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Result.cs" />
     <Compile Include="KeyUtilities.cs" />

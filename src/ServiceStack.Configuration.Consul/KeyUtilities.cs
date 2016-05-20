@@ -33,7 +33,7 @@ namespace ServiceStack.Configuration.Consul
             if (appHost.Config == null)
                 return new[] { serviceKey, defaultKey };
 
-            var version = appHost.Config.ApiVersion;
+            var version = appHost.Config.ApiVersion.Replace("/", ".");
 
             var instanceId = GetInstanceId(appHost.Config);
 
@@ -71,10 +71,13 @@ namespace ServiceStack.Configuration.Consul
         {
             var hostUrl = string.IsNullOrEmpty(config.WebHostUrl)
                               ? string.Empty
-                              : config.WebHostUrl.WithTrailingSlash().Replace("http://", string.Empty).Replace(
-                                  "https://", string.Empty).Replace("/", "|");
+                              : config.WebHostUrl
+                                      .WithTrailingSlash()
+                                      .Replace("http://", string.Empty)
+                                      .Replace("https://", string.Empty)
+                                      .Replace("/", "|");
 
-            var factoryPath = config.HandlerFactoryPath;
+            var factoryPath = config.HandlerFactoryPath.Replace("/", "|");
 
             return $"{hostUrl}{factoryPath}";
         }

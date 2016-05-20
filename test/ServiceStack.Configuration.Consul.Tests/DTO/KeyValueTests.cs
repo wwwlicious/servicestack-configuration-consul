@@ -127,5 +127,22 @@ namespace ServiceStack.Configuration.Consul.Tests.DTO
 
             key.ToUrl(url).Should().Be(expected);
         }
+
+        [Fact]
+        public void ToGetUrl_Correct()
+        {
+            var key = KeyValue.Create(TestKey);
+
+            key.ToGetUrl().Should().Be($"/v1/kv/{TestKey}");
+        }
+
+        [Fact]
+        public void ToGetUrl_WithSlashes_Correct()
+        {
+            const string slashKey = "guns/n/roses";
+            var key = KeyValue.Create(slashKey);
+
+            key.ToGetUrl().Should().Be($"/v1/kv/{slashKey}");
+        }
     }
 }

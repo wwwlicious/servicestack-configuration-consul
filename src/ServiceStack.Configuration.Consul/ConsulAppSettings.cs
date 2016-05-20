@@ -50,7 +50,6 @@ namespace ServiceStack.Configuration.Consul
             // GET ?keys []
             try
             {
-                // TODO - make async
                 return $"{keyValueEndpoint}{KeyUtilities.Prefix}?keys".GetJsonFromUrl().FromJson<List<string>>();
             }
             catch (Exception ex)
@@ -167,7 +166,6 @@ namespace ServiceStack.Configuration.Consul
 
                 log.Debug($"Calling {url} to get values");
 
-                // TODO - make async
                 var result = url.SendStringToUrl("GET", accept: "application/json");
 
                 // Consul KV always returns a collection

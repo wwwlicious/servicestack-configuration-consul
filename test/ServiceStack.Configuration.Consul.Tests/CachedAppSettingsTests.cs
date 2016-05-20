@@ -9,7 +9,6 @@ namespace ServiceStack.Configuration.Consul.Tests
     using System.Net;
     using Caching;
     using FakeItEasy;
-    using Fixtures;
     using FluentAssertions;
     using Xunit;
 

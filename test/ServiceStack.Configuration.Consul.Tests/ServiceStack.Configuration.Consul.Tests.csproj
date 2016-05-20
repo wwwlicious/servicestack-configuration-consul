@@ -90,7 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettingTestsBase.cs" />
-    <Compile Include="CachedConsulAppSettingsTests.cs" />
+    <Compile Include="CachedAppSettingsTests.cs" />
     <Compile Include="ConsulAppSettingsTests.cs" />
     <Compile Include="Fixtures\AppHostCollection.cs" />
     <Compile Include="Fixtures\AppHostFixture.cs" />

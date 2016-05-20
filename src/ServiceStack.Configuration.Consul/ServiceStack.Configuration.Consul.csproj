@@ -62,9 +62,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CachedConsulAppSettings.cs" />
+    <Compile Include="CachedAppSettings.cs" />
     <Compile Include="ConsulAppSettings.cs" />
     <Compile Include="DTO\KeyValue.cs" />
+    <Compile Include="Extensions\CachedAppSettingsExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Result.cs" />
     <Compile Include="KeyUtilities.cs" />

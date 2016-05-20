@@ -24,19 +24,16 @@ Install the package [https://www.nuget.org/packages/ServiceStack.Configuration.C
 PM> Install-Package ServiceStack.Configuration.Consul
 ```
 
-There are 2 implementations of `IAppSettings`: `ConsulAppSetting` and `CachedConsulAppSetting`. These are setup like any other implementation of AppSettings. To set either as the default `IAppSettings` implementation for an AppHost add the following line while configuring an AppHost:
+The `ConsulAppSetting` is setup like any other implementation of AppSettings. To set `ConsulAppSetting` as the default `IAppSettings` implementation for an AppHost add the following line while configuring an AppHost:
 
 ```csharp
 public override void Configure(Container container)
 {
     // ..standard setup... 
-	
-	AppSettings = new CachedConsulAppSettings();
-	// OR
-    AppSettings = new ConsulAppSettings();
+	AppSettings = new ConsulAppSettings();
 }
 ```
-Both `CachedConsulAppSettings` and `ConsulAppSettings` work as part of a cascading configuration setup using `MultiAppSettings`. The following will check Consul first, then local appSetting (app.config/web.config) before finally checking Environment variables.
+`ConsulAppSettings` work as part of a cascading configuration setup using `MultiAppSettings`. The following will check Consul first, then local appSetting (app.config/web.config) before finally checking Environment variables.
 
 ```csharp
 AppSettings = new MultiAppSettings(
@@ -56,22 +53,22 @@ public class MyService : Service
 }
 ```
 
-## Overview
-The recommendation is to use `CachedConsulAppSetting` as this provides some protection against spikes in traffic by caching responses for a short period of time.
+### Caching AppSettings
+`CachedAppSettings` is a thin wrapper around `IAppSetting` that caches all fetched requests for 2000ms (by default. The time, in ms, can be specified as a constructor argument). If a repeat call is made for the same key within the caching time the result will be served from the cache rather than the K/V store.
 
-### `ConsulAppSetting`
-`ConsulAppSetting` is a basic implementation of `IAppSettings` that makes calls directly to Consul K/V store on every request. The URL of the consul instance to use can be specified as an optional constructor argument.
-
-### `CachedConsulAppSetting`
-`CachedConsulAppSetting` is a thin wrapper around `ConsulAppSetting` that caches all fetched requests for 2000ms (by default. The time, in ms, can be specified as a constructor argument). If a repeat call is made for the same key within the caching time the result will be served from the cache rather than the K/V store.
+```csharp
+AppSettings = new ConsulAppSettings().WithCache();
+```
 
 Calls to Consul are made via a loopback address so will be quick, however caching results avoids the potential to overload Consul by making too many requests in a short period of time.
 
-The default `ICacheClient` implementation used is `MemoryCacheClient`. A different implementation of `ICacheClient` can be specified using the `WithCacheClient(ICacheClient cacheClient)` method, however the recommendation is to use a local memory cache. The goal of the `CachedConsulAppSetting` is to avoid many repeated loopback http requests in a small period of time so there is little to gain in replacing these calls with many requests to a remote caching solution.
+The default `ICacheClient` implementation used is `MemoryCacheClient`. A different implementation of `ICacheClient` can be specified using the `WithCacheClient(ICacheClient cacheClient)` method, however the recommendation is to use a local memory cache. The goal of the `CachedAppSettings` is to avoid many repeated loopback http requests in a small period of time so there is little to gain in replacing these calls with many requests to a remote caching solution.
 
-```charp
-// Cache results for 5000ms in new instance of MyCacheClient.
-AppSettings = new CachedConsulAppSettings(5000).WithCacheClient(new MyCacheClient());
+Although this has been written with Consul in mind the only dependency the `CachedAppSettings` has is on `IAppSetting` and as such can be used to add caching to any implementation.
+
+```csharp
+// Cache Consul appSetting requests  for 5000ms in new instance of MyCacheClient.
+AppSettings = new ConsulAppSettings.WithCache(5000).WithCacheClient(new MyCacheClient());
 ```
 
 ### Multi Level Keys
@@ -84,7 +81,7 @@ Consul K/V store supports the concept of folders. Any element of a Key that prec
 | service specific | ss/{key}/{servicename} | ss/myKey/productService |
 | default | ss/{key} | ss/myKey |
 
-This would allow an appSetting with key "cacheTimeout" to differ for a specific version of a service, differ per service or have a default value for all services. The both implementations of `ConsulAppSettings` will transparently try and find the most specific match following the above pattern.
+This would allow an appSetting with key "cacheTimeout" to differ for a specific version of a service, differ per service or have a default value for all services. `ConsulAppSettings` will transparently try and find the most specific match following the above pattern.
 
 #### Key Makeup
 In the above example the fields used to check for different keys are as follows:
@@ -94,7 +91,6 @@ In the above example the fields used to check for different keys are as follows:
 * {servicename} - `AppHost.ServiceName`
 * {version} - `AppHost.Config.ApiVersion`
 * {instance} - `AppHost.Config.WebHostUrl` + "|" + `AppHost.Config.HandlerFactoryPath`
-
 
 ## Demo
 ServiceStack.Configuration.Consul.Demo is a console app that starts a self hosted application that runs as [http://127.0.0.1:8093/](http://127.0.0.1:8093/). This contains a simple service that takes a GET and PUT request:

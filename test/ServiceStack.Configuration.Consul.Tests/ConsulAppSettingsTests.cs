@@ -23,7 +23,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public ConsulAppSettingsTests(AppHostFixture fixture)
         {
             this.fixture = fixture;
-            appSettings = new ConsulAppSettings();
+            appSettings = new ConsulAppSettings(KeySpecificity.LiteralKey);
         }
 
         [Theory]
@@ -332,13 +332,13 @@ namespace ServiceStack.Configuration.Consul.Tests
         [Fact]
         public void Set_CallsSetEndpoint()
         {
-            VerifyEndpoint(() => appSettings.Set("ss/" + SampleKey, 12345), "PUT", "true");
+            VerifySetEndpoint(() => appSettings.Set(SampleKey, 12345), "true");
         }
 
         [Fact]
         public void Set_CallsGetEndpoint_WithSlashes()
         {
-            VerifyEndpoint(() => appSettings.Set("ss/" + SlashKey, 22), "PUT", "true", SlashKey);
+            VerifySetEndpoint(() => appSettings.Set(SlashKey, 22), "true", SlashKey);
         }
 
         [Fact]
@@ -364,8 +364,22 @@ namespace ServiceStack.Configuration.Consul.Tests
 
             using (GetStandardHttpResultsFilter(result))
             {
-                Assert.Throws<ConfigurationErrorsException>(() => appSettings.Set(SampleKey, human));
+                Action action = () => appSettings.Set(SampleKey, human);
+                action.ShouldThrow<ConfigurationErrorsException>();
             }
+        }
+
+        [Theory]
+        [InlineData(KeySpecificity.LiteralKey, "foo/bar")]
+        [InlineData(KeySpecificity.Global, "ss/foo/bar")]
+        [InlineData(KeySpecificity.Service, "ss/foo/bar/testService")]
+        [InlineData(KeySpecificity.Version, "ss/foo/bar/testService/1.0")]
+        [InlineData(KeySpecificity.Instance, "ss/foo/bar/testService/i/127.0.0.1:8090|api")]
+        public void Set_Respects_KeySpecificity(KeySpecificity keySpecificity, string expectedKey)
+        {
+            var keySpecificAppSetting = new ConsulAppSettings(keySpecificity);
+
+            VerifySetEndpoint(() => keySpecificAppSetting.Set(SlashKey, 123), "true", expectedKey);
         }
 
         [Fact]

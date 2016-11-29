@@ -45,7 +45,7 @@ namespace ServiceStack.Configuration.Consul.Demo
         {
             SetConfig(new HostConfig { WebHostUrl = serviceUrl, ApiVersion = "2.3", HandlerFactoryPath = "api" });
 
-            AppSettings = new ConsulAppSettings().WithCache(10000);
+            AppSettings = new ConsulAppSettings(KeySpecificity.Global).WithCache(10000);
 
             // Uncomment the following line to use Multi cascading IAppSetting providers
             /*AppSettings = new MultiAppSettings(
@@ -94,8 +94,6 @@ namespace ServiceStack.Configuration.Consul.Demo
         
         public object Put(KeyRequest key)
         {
-            key.Key = "ss/" + key.Key;
-
             AppSettings.Set($"{key.Key}/ConfigDemoService", $"{key.Body} service");
             AppSettings.Set($"{key.Key}/ConfigDemoService/2.3", $"{key.Body} version");
             AppSettings.Set($"{key.Key}/ConfigDemoService/1.0", $"{key.Body} not found");

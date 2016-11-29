@@ -4,6 +4,7 @@
 
 namespace ServiceStack.Configuration.Consul
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using DTO;
@@ -12,6 +13,7 @@ namespace ServiceStack.Configuration.Consul
     {
         public const string Prefix = "ss/";
         public static string GetDefaultLookupKey(string key) => $"{Prefix}{key}";
+        private static readonly Dictionary<string, IEnumerable<string>> CachedPossibleKeys = new Dictionary<string, IEnumerable<string>>();
 
         /// <summary>
         /// For specified key gets a list of all possible locations from most -> least specific
@@ -20,31 +22,30 @@ namespace ServiceStack.Configuration.Consul
         /// <returns>List of keys where value may be found (most to least specific)</returns>
         public static IEnumerable<string> GetPossibleKeys(string key)
         {
-            var defaultKey = !key.StartsWith(Prefix) ? GetDefaultLookupKey(key) : key;
+            if (CachedPossibleKeys.ContainsKey(key))
+                return CachedPossibleKeys[key];
 
             var appHost = HostContext.AppHost;
 
             if (appHost == null)
-                return new[] { defaultKey };
-
-            var serviceName = appHost.ServiceName;
-            var serviceKey = $"{defaultKey}/{serviceName}";
+                return new[] { GetKeyForSpecificity(key, KeySpecificity.Global) };
 
             if (appHost.Config == null)
-                return new[] { serviceKey, defaultKey };
+                return new[]
+                {
+                    GetKeyForSpecificity(key, KeySpecificity.Service),
+                    GetKeyForSpecificity(key, KeySpecificity.Global)
+                };
 
-            var version = appHost.Config.ApiVersion.Replace("/", ".");
-
-            var instanceId = GetInstanceId(appHost.Config);
-
-            // TODO Cache these as they'll be the same always
-            return new[]
+            var possibleKeys = new[]
             {
-                $"{serviceKey}/i/{instanceId}", // instance specific (ss/keyname/service/127.0.0.1:8080)
-                $"{serviceKey}/{version}", // version specific (ss/keyname/service/v1)
-                serviceKey, // service specific (ss/keyname/service)
-                defaultKey // default (ss/keyname)
+                GetKeyForSpecificity(key, KeySpecificity.Instance), // instance specific (ss/keyname/service/127.0.0.1:8080)
+                GetKeyForSpecificity(key, KeySpecificity.Version), // version specific (ss/keyname/service/v1)
+                GetKeyForSpecificity(key, KeySpecificity.Service), // service specific (ss/keyname/service)
+                GetKeyForSpecificity(key, KeySpecificity.Global) // global (ss/keyname)
             };
+            CachedPossibleKeys.Add(key, possibleKeys);
+            return possibleKeys;
         }
 
         /// <summary>
@@ -65,6 +66,37 @@ namespace ServiceStack.Configuration.Consul
             var possibleKeys = GetPossibleKeys(key).ToList();
 
             return keyValues.Reverse().FirstOrDefault(candidate => possibleKeys.Contains(candidate.Key));
+        }
+
+        public static string GetKeyForSpecificity(string key, KeySpecificity specificity)
+        {
+            if (specificity == KeySpecificity.LiteralKey)
+                return key;
+
+            var globalKey = !key.StartsWith(Prefix) ? GetDefaultLookupKey(key) : key;
+
+            if (specificity == KeySpecificity.Global)
+                return globalKey; // global (ss/keyname)
+
+            var appHost = HostContext.AppHost;
+
+            var serviceName = appHost.ServiceName;
+            var serviceKey = $"{globalKey}/{serviceName}";
+
+            if (specificity == KeySpecificity.Service)
+                return serviceKey; // service specific (ss/keyname/service)
+
+            if (specificity == KeySpecificity.Instance)
+            {
+                var instanceId = GetInstanceId(appHost.Config);
+                return $"{serviceKey}/i/{instanceId}"; // instance specific (ss/keyname/service/127.0.0.1:8080)
+            }
+
+            if (string .IsNullOrWhiteSpace(appHost.Config?.ApiVersion))
+                throw new InvalidOperationException("Unable to get Version specific key when Version not set");
+
+            var version = appHost.Config.ApiVersion.Replace("/", ".");
+            return $"{serviceKey}/{version}"; // version specific (ss/keyname/service/v1)
         }
 
         private static string GetInstanceId(HostConfig config)

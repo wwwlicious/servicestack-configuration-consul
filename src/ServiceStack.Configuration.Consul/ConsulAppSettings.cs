@@ -21,19 +21,29 @@ namespace ServiceStack.Configuration.Consul
         private readonly string keyValueEndpoint;
         private readonly string consulUri;
         private readonly ILog log = LogManager.GetLogger(typeof(ConsulAppSettings));
+        private readonly KeySpecificity setSpecificity;
 
-        public ConsulAppSettings(string consulUri)
+        /// <summary>
+        /// Instantiates new ConsulAppSettings object using consul agent at specified URI.
+        /// </summary>
+        /// <param name="consulUri">The URI of the Consul agent</param>
+        /// <param name="setSpecificity">Logic used when using Set command</param>
+        public ConsulAppSettings(string consulUri, KeySpecificity setSpecificity = KeySpecificity.Instance)
         {
             consulUri.ThrowIfNullOrEmpty(nameof(consulUri));
 
             this.consulUri = consulUri;
             keyValueEndpoint = consulUri.CombineWith("/v1/kv/");
+
+            this.setSpecificity = setSpecificity;
         }
 
         /// <summary>
         /// Instantiates new ConsulAppSettings object using local consul agent (http://127.0.0.1:8500)
         /// </summary>
-        public ConsulAppSettings() : this("http://127.0.0.1:8500")
+        /// <param name="setLevel">Logic used when using Set command</param>
+        public ConsulAppSettings(KeySpecificity setLevel = KeySpecificity.Instance)
+            : this("http://127.0.0.1:8500", setLevel)
         {
         }
 
@@ -69,7 +79,10 @@ namespace ServiceStack.Configuration.Consul
         {
             key.ThrowIfNullOrEmpty(nameof(key));
 
-            var keyVal = KeyValue.Create(key, value);
+            var setKey = KeyUtilities.GetKeyForSpecificity(key, setSpecificity);
+            log.Debug($"Key {setKey} will be used for setting value for provided key: {key}");
+
+            var keyVal = KeyValue.Create(setKey, value);
             string result;
             try
             {
@@ -77,17 +90,17 @@ namespace ServiceStack.Configuration.Consul
             }
             catch (Exception ex)
             {
-                var message = $"Error setting value {value} to configuration {key}";
+                var message = $"Error setting value {value} to configuration {key}. SetKey: {setKey}";
                 log.Error(message, ex);
-                throw new ConfigurationErrorsException($"Error setting configuration key {key}", ex);
+                throw new ConfigurationErrorsException($"Error setting configuration key {setKey}", ex);
             }
 
             // Consul returns true|false to signify success
             bool success;
             if (!bool.TryParse(result, out success) || !success)
             {
-                log.Warn($"Error setting value {value} to configuration {key}");
-                throw new ConfigurationErrorsException($"Error setting configuration key {key}");
+                log.Warn($"Error setting value {value} to configuration {key}. SetKey: {setKey}");
+                throw new ConfigurationErrorsException($"Error setting configuration key {setKey}");
             }
         }
 

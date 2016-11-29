@@ -56,7 +56,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             fixture.AppHost.Config.HandlerFactoryPath = "api/subpath";
             fixture.AppHost.Config.ApiVersion = "1/0/1";
 
-            var prefixedKey = $"ss/{Key}";
+            var prefixedKey = $"ss/{Key}_changekey";
             var values = KeyUtilities.GetPossibleKeys(prefixedKey).ToList();
             values.Count.Should().Be(4);
             values[0].Should().Be($"{prefixedKey}/{AppHostFixture.ServiceName}/i/127.0.0.1:8090|api|subpath");
@@ -172,6 +172,50 @@ namespace ServiceStack.Configuration.Consul.Tests
             var result = KeyUtilities.GetMostSpecificMatch(list, Key);
 
             result.Key.Should().Be($"ss/{Key}");
+        }
+
+        [Fact]
+        public void GetKeyForSpecificity_ReturnsKey_IfLiteralKeySpecificity()
+        {
+            const string key = "highanddry";
+
+            KeyUtilities.GetKeyForSpecificity(key, KeySpecificity.LiteralKey).Should().Be(key);
+        }
+
+        [Fact]
+        public void GetKeyForSpecificity_ReturnsKeyWithPrefix_IfGlobalSpecificity()
+        {
+            const string key = "highanddry";
+            const string expected = "ss/highanddry";
+
+            KeyUtilities.GetKeyForSpecificity(key, KeySpecificity.Global).Should().Be(expected);
+        }
+
+        [Fact]
+        public void GetKeyForSpecificity_ReturnsServiceKey_IfServiceSpecificity()
+        {
+            const string key = "highanddry";
+            string expected = $"ss/highanddry/{AppHostFixture.ServiceName}";
+
+            KeyUtilities.GetKeyForSpecificity(key, KeySpecificity.Service).Should().Be(expected);
+        }
+
+        [Fact]
+        public void GetKeyForSpecificity_ReturnsInstanceKey_IfInstanceSpecificity()
+        {
+            const string key = "highanddry";
+            string expected = $"ss/highanddry/{AppHostFixture.ServiceName}/i/127.0.0.1:8090|api";
+
+            KeyUtilities.GetKeyForSpecificity(key, KeySpecificity.Instance).Should().Be(expected);
+        }
+
+        [Fact]
+        public void GetKeyForSpecificity_ReturnsVersionKey_IfVersionSpecificity()
+        {
+            const string key = "highanddry";
+            string expected = $"ss/highanddry/{AppHostFixture.ServiceName}/1.0";
+
+            KeyUtilities.GetKeyForSpecificity(key, KeySpecificity.Version).Should().Be(expected);
         }
     }
 

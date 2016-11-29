@@ -53,6 +53,29 @@ namespace ServiceStack.Configuration.Consul.Tests
             }
         }
 
+        protected static void VerifySetEndpoint(Action callEndpoint, string result = ConsulResultString, string key = SampleKey)
+        {
+            HttpWebRequest webRequest = null;
+
+            using (new HttpResultsFilter
+            {
+                StringResultFn = (request, s) =>
+                {
+                    webRequest = request;
+                    return result;
+                }
+            })
+            {
+                callEndpoint();
+
+                var expectedString = $"{DefaultUrl}{key}";
+
+                var expected = new Uri(expectedString);
+                webRequest.RequestUri.Should().Be(expected);
+                webRequest.Method.Should().Be("PUT");
+            }
+        }
+
         protected static HttpResultsFilter GetErrorHttpResultsFilter()
         {
             return new HttpResultsFilter { StringResultFn = (request, s) => { throw new WebException(); } };

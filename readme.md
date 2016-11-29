@@ -72,16 +72,30 @@ AppSettings = new ConsulAppSettings.WithCache(5000).WithCacheClient(new MyCacheC
 ```
 
 ### Multi Level Keys
-Consul K/V store supports the concept of folders. Any element of a Key that precedes a '/' is treated as a folder. This allows the same key to be represented at different levels of specificity. This plugin looks at the following levels (from most to least specific):
+Consul K/V store supports the concept of folders. Any element of a Key that precedes a '/' is treated as a folder. This allows the same key to be represented at different levels of specificity. 
+
+#### Get Operations
+For `Get` operations this plugin looks at the following levels (from most to least specific):
 
 | Name | Layout | Example |
 | --- | --- | --- |
-| instance specific | ss/{key}/{servicename}/i/{instance} | ss/myKey/productService/i/127.0.0.1:8095|api |
+| instance specific | ss/{key}/{servicename}/i/{instance} | ss/myKey/productService/i/127.0.0.1:8095 |
 | version specific | ss/{key}/{servicename}/{version} | ss/myKey/productService/1.2 |
 | service specific | ss/{key}/{servicename} | ss/myKey/productService |
 | default | ss/{key} | ss/myKey |
 
-This would allow an appSetting with key "cacheTimeout" to differ for a specific version of a service, differ per service or have a default value for all services. `ConsulAppSettings` will transparently try and find the most specific match following the above pattern.
+This would allow an appSetting with key "cacheTimeout" to differ for a specific version of a service, differ per service or have a default value for all services. `ConsulAppSettings` will transparently find the most specific match following the above pattern.
+
+#### Set Operations
+The constructor for the ConsulAppSettings takes an optional `KeySpecificity` parameter which controls which specificity level keys are set at. The possible values for `KeySpecificity` are:
+
+| Value | Description | Example |
+| --- | --- | --- |
+| LiteralKey | no modifications are made when setting value, the specified key is used as-is | foo-bar -> foo-bar |
+| Instance | any Set operations are made for this instance only. **default** | foo-bar -> ss/foo-bar/productService/i/127.0.0.1:8095 |
+| Version | updates are made for all instances of this service with same version number | foo-bar -> ss/foo-bar/productService/1.0 |
+| Service | updates made for all instance of this service | foo-bar -> ss/foo-bar/productService |
+| Global | updates made for any instance of any service | foo-bar -> ss/foo-bar |
 
 #### Key Makeup
 In the above example the fields used to check for different keys are as follows:

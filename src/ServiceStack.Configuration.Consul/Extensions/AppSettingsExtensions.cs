@@ -4,6 +4,9 @@
 
 namespace ServiceStack.Configuration.Consul.Extensions
 {
+    /// <summary>
+    /// Extension methofs for cached app settings
+    /// </summary>
     public static class AppSettingsExtensions
     {
         /// <summary>

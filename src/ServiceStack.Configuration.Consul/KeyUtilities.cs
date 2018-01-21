@@ -9,10 +9,23 @@ namespace ServiceStack.Configuration.Consul
     using System.Linq;
     using DTO;
 
+    /// <summary>
+    /// Utility class for consul specific heirarchical storage concepts
+    /// </summary>
     public static class KeyUtilities
     {
+        /// <summary>
+        /// The default consul setting prefix
+        /// </summary>
         public const string Prefix = "ss/";
+        
+        /// <summary>
+        /// The default consul lookup key
+        /// </summary>
+        /// <param name="key">the key name</param>
+        /// <returns>the lookup key</returns>
         public static string GetDefaultLookupKey(string key) => $"{Prefix}{key}";
+        
         private static readonly Dictionary<string, IEnumerable<string>> CachedPossibleKeys = new Dictionary<string, IEnumerable<string>>();
 
         /// <summary>
@@ -68,6 +81,13 @@ namespace ServiceStack.Configuration.Consul
             return keyValues.Reverse().FirstOrDefault(candidate => possibleKeys.Contains(candidate.Key));
         }
 
+        /// <summary>
+        /// Creates a formatted lookup for the hierarchical specificity
+        /// </summary>
+        /// <param name="key">the key name</param>
+        /// <param name="specificity">the key specificity</param>
+        /// <returns>the formatted key</returns>
+        /// <exception cref="InvalidOperationException">Thrown if a version specific key is requested but no version has been set in the <see cref="HostConfig.ApiVersion"/></exception>
         public static string GetKeyForSpecificity(string key, KeySpecificity specificity)
         {
             if (specificity == KeySpecificity.LiteralKey)

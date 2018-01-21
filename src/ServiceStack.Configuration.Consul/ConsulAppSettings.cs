@@ -47,6 +47,10 @@ namespace ServiceStack.Configuration.Consul
         {
         }
 
+        /// <summary>
+        /// Gets all app settings from consul
+        /// </summary>
+        /// <returns>a dictionary of app settings</returns>
         public virtual Dictionary<string, string> GetAll()
         {
             // GetAll is a call with a null key as all keys live under known subfolder (ss)
@@ -55,6 +59,10 @@ namespace ServiceStack.Configuration.Consul
             return values.IsSuccess ? values.Value.ToDictionary(k => k.Key, v => v.GetValue<object>().ToString()) : null;
         }
 
+        /// <summary>
+        /// Gets all app setting keys from consul
+        /// </summary>
+        /// <returns>a list of keys</returns>
         public virtual List<string> GetAllKeys()
         {
             // GET ?keys []
@@ -69,12 +77,14 @@ namespace ServiceStack.Configuration.Consul
             }
         }
 
+        /// <inheritdoc />
         public virtual bool Exists(string key)
         {
             var result = GetFromConsul<string>(key, null);
             return result.IsSuccess;
         }
 
+        /// <inheritdoc />
         public virtual void Set<T>(string key, T value)
         {
             key.ThrowIfNullOrEmpty(nameof(key));
@@ -104,31 +114,43 @@ namespace ServiceStack.Configuration.Consul
             }
         }
 
+        /// <inheritdoc />
         public virtual string GetString(string name)
         {
             return GetFromConsul<string>(name, null).Value;
         }
 
+        /// <inheritdoc />
         public virtual IList<string> GetList(string key)
         {
             return GetFromConsul<List<string>>(key, null).Value;
         }
 
+        /// <inheritdoc />
         public virtual IDictionary<string, string> GetDictionary(string key)
         {
             return GetFromConsul<Dictionary<string, string>>(key, null).Value;
         }
 
+        /// <inheritdoc />
         public virtual T Get<T>(string name)
         {
             return GetFromConsul(name, default(T)).Value;
         }
 
+        /// <inheritdoc />
         public virtual T Get<T>(string name, T defaultValue)
         {
             return GetFromConsul(name, defaultValue).Value;
         }
 
+        /// <summary>
+        /// Gets a key value from consul with a default to use if not found
+        /// </summary>
+        /// <param name="name">the key name</param>
+        /// <param name="defaultValue">the default value if not found</param>
+        /// <typeparam name="T">the value type</typeparam>
+        /// <returns>the result from consul</returns>
         protected Result<T> GetFromConsul<T>(string name, T defaultValue)
         {
             name.ThrowIfNullOrEmpty(nameof(name));

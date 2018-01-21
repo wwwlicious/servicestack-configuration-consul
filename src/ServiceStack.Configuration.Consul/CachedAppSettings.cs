@@ -24,10 +24,15 @@ namespace ServiceStack.Configuration.Consul
 
         private ICacheClient CacheClient
         {
-            get { return cacheClientValue ?? (cacheClientValue = new MemoryCacheClient()); }
-            set { cacheClientValue = value; }
+            get => cacheClientValue ?? (cacheClientValue = new MemoryCacheClient());
+            set => cacheClientValue = value;
         }
 
+        /// <summary>
+        /// A cache wrapper around IAppSettings
+        /// </summary>
+        /// <param name="appSettings">the appsettings object</param>
+        /// <param name="cacheTtl">the cache time to live, defaults to 2 seconds</param>
         public CachedAppSettings(IAppSettings appSettings, int cacheTtl = DefaultTtl)
         {
             appSettings.ThrowIfNull(nameof(appSettings));
@@ -35,6 +40,11 @@ namespace ServiceStack.Configuration.Consul
             ttl = TimeSpan.FromMilliseconds(cacheTtl);
         }
 
+        /// <summary>
+        /// Sets the cache client to use for the appsettings
+        /// </summary>
+        /// <param name="cacheClient">the cached client</param>
+        /// <returns>the cached appsettings</returns>
         public CachedAppSettings WithCacheClient(ICacheClient cacheClient)
         {
             cacheClient.ThrowIfNull(nameof(cacheClient));
@@ -42,12 +52,25 @@ namespace ServiceStack.Configuration.Consul
             return this;
         }
 
+        /// <summary>
+        /// gets all cached app settings
+        /// </summary>
+        /// <returns>a dictionary of app settings</returns>
         public Dictionary<string, string> GetAll()
             => TryGetCached(AllValues, wrappedAppSetting.GetAll);
 
+        /// <summary>
+        /// get all cached app setting keys
+        /// </summary>
+        /// <returns>a list of app setting keys</returns>
         public List<string> GetAllKeys()
             => TryGetCached(AllKeys, wrappedAppSetting.GetAllKeys);
 
+        /// <summary>
+        /// Checks is a key exists in the cached app settings
+        /// </summary>
+        /// <param name="key">the key name</param>
+        /// <returns>true if the key exists, otherwise false</returns>
         public bool Exists(string key)
         {
             var checkKey = $"{key}_exists";
@@ -63,21 +86,55 @@ namespace ServiceStack.Configuration.Consul
             return fromWrapped;
         }
 
+        /// <summary>
+        /// Gets a cached app setting by key
+        /// </summary>
+        /// <param name="name">the key name</param>
+        /// <typeparam name="T">the app setting value type</typeparam>
+        /// <returns>the app setting value</returns>
         public T Get<T>(string name)
             => TryGetCached(name, () => wrappedAppSetting.Get<T>(name));
 
+        /// <summary>
+        /// Gets a cached app setting by key with a default is not found
+        /// </summary>
+        /// <param name="name">the key name</param>
+        /// <param name="defaultValue">the default value</param>
+        /// <typeparam name="T">the app setting value type</typeparam>
+        /// <returns></returns>
         public T Get<T>(string name, T defaultValue)
             => TryGetCached(name, () => wrappedAppSetting.Get(name, defaultValue));
 
+        /// <summary>
+        /// Gets a cached app setting dictionary by key
+        /// </summary>
+        /// <param name="key">the key name</param>
+        /// <returns>a string dictionary</returns>
         public IDictionary<string, string> GetDictionary(string key)
             => TryGetCached(key, () => wrappedAppSetting.GetDictionary(key));
 
+        /// <summary>
+        /// Gets a cached app setting list by key
+        /// </summary>
+        /// <param name="key">the key name</param>
+        /// <returns>a string list</returns>
         public IList<string> GetList(string key)
             => TryGetCached(key, () => wrappedAppSetting.GetList(key));
 
+        /// <summary>
+        /// Gets a cached app setting string value by key
+        /// </summary>
+        /// <param name="name">the key name</param>
+        /// <returns>the string value</returns>
         public string GetString(string name)
             => TryGetCached(name, () => wrappedAppSetting.GetString(name));
 
+        /// <summary>
+        /// Sets a cached app setting
+        /// </summary>
+        /// <param name="key">the app setting key</param>
+        /// <param name="value">the app setting value</param>
+        /// <typeparam name="T">the value type</typeparam>
         public void Set<T>(string key, T value)
         {
             key.ThrowIfNullOrEmpty(nameof(key));

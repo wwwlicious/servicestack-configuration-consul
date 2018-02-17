@@ -12,7 +12,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <PackageId>ServiceStack.Configuration.Consul</PackageId>
-    <Version>$(VersionNumber)</Version>
+    <Version>$(Version)</Version>
     <PackageOutputPath>$(PackageOutputPath)</PackageOutputPath>
     <PackageLicenseUrl>https://opensource.org/licenses/MPL-2.0</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/wwwlicious/ServiceStack.Configuration.Consul</PackageProjectUrl>

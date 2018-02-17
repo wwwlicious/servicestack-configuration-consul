@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>ServiceStack.Configuration.Consul</id>
-    <version>$version$</version>
+    <version>$VersionNumber$</version>
     <authors>Donald Gray (@donaldgray), Scott Mackay (@wwwlicous)</authors>
     <description>Implementation of ServiceStack IAppSettings that uses Consul.io Key/Value store as backing store</description>
     <projectUrl>https://github.com/wwwlicious/ServiceStack.Configuration.Consul</projectUrl>

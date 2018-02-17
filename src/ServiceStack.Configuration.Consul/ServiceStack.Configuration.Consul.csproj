@@ -15,13 +15,13 @@
     <Version>$(VersionNumber)</Version>
     <PackageOutputPath>$(PackageOutputPath)</PackageOutputPath>
     <PackageLicenseUrl>https://opensource.org/licenses/MPL-2.0</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/MacLeanElectrical/ServiceStack.Configuration.Consul</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/wwwlicious/ServiceStack.Configuration.Consul</PackageProjectUrl>
     <PackageIconUrl>https://servicestack.net/img/logo-32.png</PackageIconUrl>
-    <ReleaseNotes>https://github.com/MacLeanElectrical/servicestack-configuration-consul/releases</ReleaseNotes>
+    <ReleaseNotes>https://github.com/wwwlicious/servicestack-configuration-consul/releases</ReleaseNotes>
     <PackageTags>servicestack consul microservices configuration settings appsettings config</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
     <IncludeSource>true</IncludeSource>
-    <RepositoryUrl>https://github.com/MacLeanElectrical/ServiceStack.Configuration.Consul</RepositoryUrl>
+    <RepositoryUrl>https://github.com/wwwlicious/ServiceStack.Configuration.Consul</RepositoryUrl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net452|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;NET452;</DefineConstants>

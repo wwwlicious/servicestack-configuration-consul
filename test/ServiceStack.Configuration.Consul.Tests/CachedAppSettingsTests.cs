@@ -48,7 +48,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void Ctor_ThrowsArgumentNullException_IfNullAppSetting()
         {
             Action action = () => new CachedAppSettings(null);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -56,7 +56,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         {
             var appSettings = new CachedAppSettings(internalAppSetting);
             Action action = () => appSettings.WithCacheClient(null);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -118,7 +118,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void Exists_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
             Action action = () => appSettings.Exists(name);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Theory]
@@ -187,7 +187,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void GetString_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
             Action action = () => appSettings.GetString(name);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -253,7 +253,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void Get_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
             Action action = () => appSettings.Get<object>(name);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -323,7 +323,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void GetWithFallback_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
             Action action = () => appSettings.Get(name, 22);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -385,7 +385,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void GetDictionary_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
             Action action = () => appSettings.GetDictionary(name);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -394,7 +394,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             A.CallTo(() => cacheClient.Get<IDictionary<string,string>>(SampleKey)).Returns(dict);
 
             var result = appSettings.GetDictionary(SampleKey);
-            result.ShouldBeEquivalentTo(dict);
+            result.Should().BeEquivalentTo(dict);
         }
 
         [Fact]
@@ -414,7 +414,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             A.CallTo(() => internalAppSetting.GetDictionary(SampleKey)).Returns(dict);
 
             var result = appSettings.GetDictionary(SampleKey);
-            result.ShouldBeEquivalentTo(dict);
+            result.Should().BeEquivalentTo(dict);
         }
 
         [Fact]
@@ -455,7 +455,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void GetList_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
             Action action = () => appSettings.GetList(name);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -463,7 +463,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         {
             A.CallTo(() => cacheClient.Get<IList<string>>(SampleKey)).Returns(list);
 
-            appSettings.GetList(SampleKey).ShouldBeEquivalentTo(list);
+            appSettings.GetList(SampleKey).Should().BeEquivalentTo(list);
         }
 
         [Fact]
@@ -482,7 +482,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             A.CallTo(() => internalAppSetting.GetList(SampleKey)).Returns(list);
 
             var result = appSettings.GetList(SampleKey);
-            result.ShouldBeEquivalentTo(list);
+            result.Should().BeEquivalentTo(list);
         }
 
         [Fact]
@@ -523,7 +523,7 @@ namespace ServiceStack.Configuration.Consul.Tests
 
             var actual = appSettings.GetAll();
 
-            actual.ShouldBeEquivalentTo(dict);
+            actual.Should().BeEquivalentTo(dict);
         }
 
         [Fact]
@@ -544,7 +544,7 @@ namespace ServiceStack.Configuration.Consul.Tests
 
             var actual = appSettings.GetAll();
 
-            actual.ShouldBeEquivalentTo(dict);
+            actual.Should().BeEquivalentTo(dict);
         }
 
         [Fact]
@@ -584,7 +584,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void Set_ThrowsArgumentNullException_IfNullOrEmptyNamePassed(string name)
         {
             Action action = () => appSettings.Set(name, 123);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]

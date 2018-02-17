@@ -18,6 +18,7 @@ namespace ServiceStack.Configuration.Consul
     /// </summary>
     public class ConsulAppSettings : IAppSettings
     {
+        private const string ConsulLocalhostUri = "http://127.0.0.1:8500";
         private readonly string keyValueEndpoint;
         private readonly string consulUri;
         private readonly ILog log = LogManager.GetLogger(typeof(ConsulAppSettings));
@@ -26,7 +27,7 @@ namespace ServiceStack.Configuration.Consul
         /// <summary>
         /// Instantiates new ConsulAppSettings object using consul agent at specified URI.
         /// </summary>
-        /// <param name="consulUri">The URI of the Consul agent</param>
+        /// <param name="consulUri">The URI of the Consul agent, ideally should always be on a loopback address i.e localhost</param>
         /// <param name="setSpecificity">Logic used when using Set command</param>
         public ConsulAppSettings(string consulUri, KeySpecificity setSpecificity = KeySpecificity.Instance)
         {
@@ -43,7 +44,7 @@ namespace ServiceStack.Configuration.Consul
         /// </summary>
         /// <param name="setLevel">Logic used when using Set command</param>
         public ConsulAppSettings(KeySpecificity setLevel = KeySpecificity.Instance)
-            : this("http://127.0.0.1:8500", setLevel)
+            : this(ConsulLocalhostUri, setLevel)
         {
         }
 

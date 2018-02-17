@@ -32,7 +32,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void Ctor_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string uri)
         {
             Action action = () => new ConsulAppSettings(uri);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void Exists_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
             Action action = () => appSettings.Exists(name);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -126,7 +126,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void GetString_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
             Action action = () => appSettings.GetString(name);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -165,7 +165,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void Get_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
             Action action = () => appSettings.Get<object>(name);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -209,7 +209,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void GetWithFallback_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
             Action action = () => appSettings.Get(name, 22);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -247,7 +247,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void GetDictionary_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
             Action action = () => appSettings.GetDictionary(name);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -268,7 +268,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             using (GetStandardHttpResultsFilter(dictResult))
             {
                 var result = appSettings.GetDictionary(SampleKey);
-                result.ShouldBeEquivalentTo(dict);
+                result.Should().BeEquivalentTo(dict);
             }
         }
 
@@ -287,7 +287,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void GetList_ThrowsArgumentNullException_IfNullOrEmptyStringPassed(string name)
         {
             Action action = () => appSettings.GetList(name);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -307,7 +307,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             using (GetStandardHttpResultsFilter(dictResult))
             {
                 var result = appSettings.GetList(SampleKey);
-                result.ShouldBeEquivalentTo(list);
+                result.Should().BeEquivalentTo(list);
             }
         }
 
@@ -326,7 +326,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         public void Set_ThrowsArgumentNullException_IfNullOrEmptyNamePassed(string name)
         {
             Action action = () => appSettings.Set(name, 123);
-            action.ShouldThrow<ArgumentNullException>();
+            action.Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -365,7 +365,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             using (GetStandardHttpResultsFilter(result))
             {
                 Action action = () => appSettings.Set(SampleKey, human);
-                action.ShouldThrow<ConfigurationErrorsException>();
+                action.Should().Throw<ConfigurationErrorsException>();
             }
         }
 

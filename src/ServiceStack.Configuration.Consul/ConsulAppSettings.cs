@@ -103,15 +103,14 @@ namespace ServiceStack.Configuration.Consul
             {
                 var message = $"Error setting value {value} to configuration {key}. SetKey: {setKey}";
                 log.Error(message, ex);
-                throw new ConfigurationErrorsException($"Error setting configuration key {setKey}", ex);
+                throw new ConsulConfigException($"Error setting configuration key {setKey}", ex);
             }
 
             // Consul returns true|false to signify success
-            bool success;
-            if (!bool.TryParse(result, out success) || !success)
+            if (!bool.TryParse(result, out var success) || !success)
             {
                 log.Warn($"Error setting value {value} to configuration {key}. SetKey: {setKey}");
-                throw new ConfigurationErrorsException($"Error setting configuration key {setKey}");
+                throw new ConsulConfigException($"Error setting configuration key {setKey}");
             }
         }
 

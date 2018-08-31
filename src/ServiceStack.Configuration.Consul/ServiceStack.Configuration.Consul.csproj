@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Copyright>Copyright © 2017</Copyright>
-    <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
     <Configurations>Debug;Release</Configurations>
     <Title>ServiceStack.Configuration.Consul</Title>
     <Description>An implementation of ServiceStack IAppSettings interface that uses Consul.io key/value store as backing storage</Description>
@@ -13,6 +12,7 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <PackageId>ServiceStack.Configuration.Consul</PackageId>
     <Version>$(Version)</Version>
+    <PackageVersion>$(PackageVersion)</PackageVersion>
     <PackageOutputPath>$(PackageOutputPath)</PackageOutputPath>
     <PackageLicenseUrl>https://opensource.org/licenses/MPL-2.0</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/wwwlicious/ServiceStack.Configuration.Consul</PackageProjectUrl>
@@ -23,14 +23,6 @@
     <IncludeSource>true</IncludeSource>
     <RepositoryUrl>https://github.com/wwwlicious/ServiceStack.Configuration.Consul</RepositoryUrl>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net452|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;NET452;</DefineConstants>
-    <DocumentationFile>bin\Debug\net452\ServiceStack.Configuration.Consul.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net452|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;NET452</DefineConstants>
-    <DocumentationFile>bin\Release\net452\ServiceStack.Configuration.Consul.xml</DocumentationFile>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;</DefineConstants>
     <DocumentationFile>bin\Debug\netstandard2.0\ServiceStack.Configuration.Consul.xml</DocumentationFile>
@@ -39,13 +31,14 @@
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0</DefineConstants>
     <DocumentationFile>bin\Release\netstandard2.0\ServiceStack.Configuration.Consul.xml</DocumentationFile>
   </PropertyGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='net452'">
-    <PackageReference Include="ServiceStack.Server" Version="[4.0.54, 5)" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-    <PackageReference Include="ServiceStack.Server" Version="5.0.*" />
-  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DocumentationFile>bin\Debug\ServiceStack.Configuration.Consul.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DocumentationFile>bin\Release\ServiceStack.Configuration.Consul.xml</DocumentationFile>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.Configuration" Condition="'$(TargetFramework)' == 'net452'" />
+    <PackageReference Include="GitLink" Version="3.1.0" PrivateAssets="All" />
+    <PackageReference Include="ServiceStack.Server" Version="5.0.0" />
   </ItemGroup>
 </Project>

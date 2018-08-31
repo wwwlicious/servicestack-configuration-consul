@@ -61,7 +61,7 @@ namespace ServiceStack.Configuration.Consul.Demo
 
         public object Get(KeyRequest key)
         {
-            if (string.Equals(key.Key, "all", StringComparison.InvariantCultureIgnoreCase))
+            if (key.Key.EqualsIgnoreCase("all"))
                 return AppSettings.GetAllKeys();
 
             var result = AppSettings.GetString(key.Key);
@@ -74,7 +74,7 @@ namespace ServiceStack.Configuration.Consul.Demo
             var list = AppSettings.GetList($"{key.Key}List"); // default
             var listno = AppSettings.GetList($"no{key.Key}List"); // not found
 
-            var dict = AppSettings.GetDictionary($"{key.Key}Dict"); // service specifc
+            var dict = AppSettings.GetDictionary($"{key.Key}Dict"); // service specific
             var dictno = AppSettings.GetDictionary($"no{key.Key}Dict"); // not found
 
             var str = AppSettings.GetString($"{key.Key}Str"); // version specific "version-specific"
@@ -119,7 +119,7 @@ namespace ServiceStack.Configuration.Consul.Demo
     [Route("/keys/{Key}")]
     public class KeyRequest : IReturn<object>
     {
-        public string Key { get; set; }
+        public string Key { get; set; } = "all";
 
         public object Body { get; set; }
     }

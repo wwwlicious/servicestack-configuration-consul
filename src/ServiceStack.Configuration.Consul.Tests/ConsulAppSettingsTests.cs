@@ -365,7 +365,7 @@ namespace ServiceStack.Configuration.Consul.Tests
             using (GetStandardHttpResultsFilter(result))
             {
                 Action action = () => appSettings.Set(SampleKey, human);
-                action.Should().Throw<ConfigurationErrorsException>();
+                action.Should().Throw<ConsulConfigException>();
             }
         }
 

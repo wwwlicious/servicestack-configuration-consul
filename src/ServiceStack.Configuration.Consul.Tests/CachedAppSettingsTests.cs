@@ -31,8 +31,7 @@ namespace ServiceStack.Configuration.Consul.Tests
         {
             cacheClient = A.Fake<ICacheClient>();
             internalAppSetting = A.Fake<IAppSettings>();
-            appSettings =
-                new CachedAppSettings(internalAppSetting).WithCacheClient(cacheClient);
+            appSettings = new CachedAppSettings(internalAppSetting).WithCacheClient(cacheClient);
             defaultTtl = TimeSpan.FromMilliseconds(2000);
             human = new Human { Age = 99, Name = "Test Person" };
 
